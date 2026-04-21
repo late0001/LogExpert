@@ -160,7 +160,8 @@ public class Preferences
 
     public string FontName { get; set; } = "Courier New";
 
-    public float FontSize { get => field; set => field = MathF.Round(value, 1); } = 9.0f;
+    private float _fontSize= 9.0f;
+    public float FontSize { get => _fontSize; set => _fontSize = MathF.Round(value, 1); }
 
     public List<HighlightMaskEntry> HighlightMaskList { get; set; } = [];
 }

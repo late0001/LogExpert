@@ -105,8 +105,8 @@ internal sealed class MenuToolbarController : IMenuToolbarController
 
         // Highlight group combo (may be on buttonToolbar or externalToolsToolStrip)
         _highlightGroupCombo = FindToolStripItem<ToolStripComboBox>(_buttonToolbar, "highlightGroupsToolStripComboBox") ?? FindToolStripItem<ToolStripComboBox>(_externalToolsToolStrip, "highlightGroupsToolStripComboBox");
-
-        _highlightGroupCombo?.SelectedIndexChanged += OnHighlightGroupComboSelectedIndexChanged;
+        if(_highlightGroupCombo is not null)
+            _highlightGroupCombo.SelectedIndexChanged += OnHighlightGroupComboSelectedIndexChanged;
 
         // History menu
         _lastUsedMenuItem = FindMenuItem("lastUsedToolStripMenuItem");
@@ -151,10 +151,12 @@ internal sealed class MenuToolbarController : IMenuToolbarController
                 _multiFileMenuItem.Checked = state.IsMultiFileActive;
             }
 
-            _ = (_multiFileEnabledMenuItem?.Checked = state.IsMultiFileActive);
+            if(_multiFileEnabledMenuItem is not null)
+                _multiFileEnabledMenuItem.Checked = state.IsMultiFileActive;
 
             // Cell select
-            _ = (_cellSelectMenuItem?.Checked = state.CellSelectMode);
+            if( _cellSelectMenuItem is not null)
+                _cellSelectMenuItem.Checked = state.CellSelectMode;
 
             // Encoding
             UpdateEncodingMenu(state.CurrentEncoding);
@@ -176,13 +178,16 @@ internal sealed class MenuToolbarController : IMenuToolbarController
             }
 
             // Toolbar
-            _ = (_bubblesButton?.Checked = state.ShowBookmarkBubbles);
+            if (_bubblesButton is not null)
+                _bubblesButton.Checked = state.ShowBookmarkBubbles;
 
             // Highlight group
-            _ = (_highlightGroupCombo?.Text = state.HighlightGroupName);
+            if(_highlightGroupCombo is not null)
+                _highlightGroupCombo.Text = state.HighlightGroupName;
 
             // Column finder
-            _ = (_columnFinderMenuItem?.Checked = state.ColumnFinderVisible);
+            if(_columnFinderMenuItem is not null)
+                _columnFinderMenuItem.Checked = state.ColumnFinderVisible;
         }
         finally
         {
@@ -232,7 +237,8 @@ internal sealed class MenuToolbarController : IMenuToolbarController
         }
 
         // Preserve existing behavior: update ANSI display name
-        _ = (_encodingAnsiMenuItem?.Text = Encoding.Default.HeaderName);
+        if(_encodingAnsiMenuItem is not null ) 
+            _encodingAnsiMenuItem.Text = Encoding.Default.HeaderName;
     }
 
     public void UpdateHighlightGroups (IEnumerable<string> groups, string selectedGroup)
@@ -305,7 +311,8 @@ internal sealed class MenuToolbarController : IMenuToolbarController
 
     private static void SetCheckedSafe (ToolStripMenuItem item, bool value)
     {
-        _ = (item?.Checked = value);
+        if (item is not null)
+            item.Checked = value;
     }
 
     private void OnHighlightGroupComboSelectedIndexChanged (object sender, EventArgs e)
@@ -431,7 +438,8 @@ internal sealed class MenuToolbarController : IMenuToolbarController
             return;
         }
 
-        _highlightGroupCombo?.SelectedIndexChanged -= OnHighlightGroupComboSelectedIndexChanged;
+        if (_highlightGroupCombo is not null)
+            _highlightGroupCombo.SelectedIndexChanged -= OnHighlightGroupComboSelectedIndexChanged;
 
         if (_lastUsedMenuItem?.DropDown != null)
         {

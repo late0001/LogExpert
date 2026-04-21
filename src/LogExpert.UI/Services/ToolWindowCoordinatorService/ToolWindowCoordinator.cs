@@ -126,7 +126,8 @@ internal sealed class ToolWindowCoordinator (IConfigManager configManager) : ITo
 
     public void SetLineColumnVisible (bool visible)
     {
-        _ = (_bookmarkWindow?.LineColumnVisible = visible);
+        if (_bookmarkWindow is not null)
+            _bookmarkWindow.LineColumnVisible = visible;
     }
 
     public void Dispose ()

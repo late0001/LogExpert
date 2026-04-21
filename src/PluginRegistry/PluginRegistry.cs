@@ -122,6 +122,7 @@ public class PluginRegistry : IPluginRegistry
     /// Gets the list of registered columnizer plugins.
     /// Triggers lazy loading of columnizers if lazy loading is enabled.
     /// </summary>
+    private IList<ILogLineMemoryColumnizer> _registeredColumnizers;
     public IList<ILogLineMemoryColumnizer> RegisteredColumnizers
     {
         get
@@ -134,9 +135,9 @@ public class PluginRegistry : IPluginRegistry
                 foreach (var loader in _lazyColumnizers.ToList())
                 {
                     var instance = loader.GetInstance();
-                    if (instance != null && !field.Contains(instance))
+                    if (instance != null && !_registeredColumnizers.Contains(instance))
                     {
-                        field.Add(instance);
+                        _registeredColumnizers.Add(instance);
                         InitializePluginIfNeeded(instance, loader.Manifest, loader.DllPath);
 
                         // Add to keyword actions dictionary if applicable
@@ -149,12 +150,12 @@ public class PluginRegistry : IPluginRegistry
                 }
 
                 _lazyColumnizers.Clear();
-                _logger.Info("Lazy loaded columnizers, total count: {Count}", field.Count);
+                _logger.Info("Lazy loaded columnizers, total count: {Count}", _registeredColumnizers.Count);
             }
 
-            return field;
+            return _registeredColumnizers;
         }
-        private set;
+        private set => _registeredColumnizers = value;
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Intentionally Catch All")]
@@ -394,6 +395,7 @@ public class PluginRegistry : IPluginRegistry
     /// Gets the list of registered file system plugins.
     /// Triggers lazy loading of file system plugins if lazy loading is enabled.
     /// </summary>
+    private IList<IFileSystemPlugin> _registeredFileSystemPlugins = [];
     public IList<IFileSystemPlugin> RegisteredFileSystemPlugins
     {
         get
@@ -405,25 +407,26 @@ public class PluginRegistry : IPluginRegistry
                 foreach (var loader in _lazyFileSystemPlugins.ToList())
                 {
                     var instance = loader.GetInstance();
-                    if (instance != null && !field.Contains(instance))
+                    if (instance != null && !_registeredFileSystemPlugins.Contains(instance))
                     {
-                        field.Add(instance);
+                        _registeredFileSystemPlugins.Add(instance);
                         InitializePluginIfNeeded(instance, loader.Manifest, loader.DllPath);
                     }
                 }
 
                 _lazyFileSystemPlugins.Clear();
-                _logger.Info("Lazy loaded file system plugins, total count: {Count}", field.Count);
+                _logger.Info("Lazy loaded file system plugins, total count: {Count}", _registeredFileSystemPlugins.Count);
             }
 
-            return field;
+            return _registeredFileSystemPlugins;
         }
-    } = [];
+    }
 
     /// <summary>
     /// Gets the list of registered context menu plugins.
     /// Triggers lazy loading of context menu plugins if lazy loading is enabled.
     /// </summary>
+    private IList<IContextMenuEntry> _registeredContextMenuPlugins = [];
     public IList<IContextMenuEntry> RegisteredContextMenuPlugins
     {
         get
@@ -435,25 +438,26 @@ public class PluginRegistry : IPluginRegistry
                 foreach (var loader in _lazyContextMenuPlugins.ToList())
                 {
                     var instance = loader.GetInstance();
-                    if (instance != null && !field.Contains(instance))
+                    if (instance != null && !_registeredContextMenuPlugins.Contains(instance))
                     {
-                        field.Add(instance);
+                        _registeredContextMenuPlugins.Add(instance);
                         InitializePluginIfNeeded(instance, loader.Manifest, loader.DllPath);
                     }
                 }
 
                 _lazyContextMenuPlugins.Clear();
-                _logger.Info("Lazy loaded context menu plugins, total count: {Count}", field.Count);
+                _logger.Info("Lazy loaded context menu plugins, total count: {Count}", _registeredContextMenuPlugins.Count);
             }
 
-            return field;
+            return _registeredContextMenuPlugins;
         }
-    } = [];
+    }
 
     /// <summary>
     /// Gets the list of registered keyword action plugins.
     /// Triggers lazy loading of keyword action plugins if lazy loading is enabled.
     /// </summary>
+    IList<IKeywordAction> _registeredKeywordActions = [];
     public IList<IKeywordAction> RegisteredKeywordActions
     {
         get
@@ -465,9 +469,9 @@ public class PluginRegistry : IPluginRegistry
                 foreach (var loader in _lazyKeywordActions.ToList())
                 {
                     var instance = loader.GetInstance();
-                    if (instance != null && !field.Contains(instance))
+                    if (instance != null && !_registeredKeywordActions.Contains(instance))
                     {
-                        field.Add(instance);
+                        _registeredKeywordActions.Add(instance);
 
                         // Add to dictionary for lookup
                         if (!_registeredKeywordsDict.ContainsKey(instance.GetName()))
@@ -480,12 +484,12 @@ public class PluginRegistry : IPluginRegistry
                 }
 
                 _lazyKeywordActions.Clear();
-                _logger.Info("Lazy loaded keyword action plugins, total count: {Count}", field.Count);
+                _logger.Info("Lazy loaded keyword action plugins, total count: {Count}", _registeredKeywordActions.Count);
             }
 
-            return field;
+            return _registeredKeywordActions;
         }
-    } = [];
+    }
 
     #endregion
 

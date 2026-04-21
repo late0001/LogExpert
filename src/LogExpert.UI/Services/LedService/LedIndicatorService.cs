@@ -52,6 +52,7 @@ internal sealed class LedIndicatorService : ILedIndicatorService, IDisposable
     /// <summary>
     /// Gets the current tail color used for LED indicators
     /// </summary>
+    private Color _currentTailColor;
     public Color CurrentTailColor
     {
         get
@@ -60,10 +61,10 @@ internal sealed class LedIndicatorService : ILedIndicatorService, IDisposable
 
             return !_isInitialized
                 ? throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, Resources.LogExpert_Common_Error_Message_ServiceNotInitialized, nameof(LedIndicatorService)))
-                : (field);
+                : (_currentTailColor);
         }
 
-        private set;
+        private set => _currentTailColor = value;
     }
 
     public LedIndicatorService ()

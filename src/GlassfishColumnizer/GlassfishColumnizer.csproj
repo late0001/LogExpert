@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 
     <OutputPath>$(SolutionDir)..\bin\$(Configuration)\plugins</OutputPath>
     <AssemblyTitle>GlassfishColumnizer</AssemblyTitle>
     <Description>Glassfish logfile support for LogExpert</Description>
     <RootNamespace>GlassfishColumnizer</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ColumnizerLib\ColumnizerLib.csproj" />

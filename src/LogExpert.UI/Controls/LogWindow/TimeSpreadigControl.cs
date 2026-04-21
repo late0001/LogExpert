@@ -60,16 +60,17 @@ internal partial class TimeSpreadingControl : UserControl
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public bool ReverseAlpha { get; set; }
 
+    internal TimeSpreadCalculator _timeSpreadCalc;
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     internal TimeSpreadCalculator TimeSpreadCalc
     {
-        get;
+        get => _timeSpreadCalc;
         set
         {
             //timeSpreadCalc.CalcDone -= timeSpreadCalc_CalcDone;
-            field = value;
-            field.CalcDone += OnTimeSpreadCalcCalcDone;
-            field.StartCalc += OnTimeSpreadCalcStartCalc;
+            _timeSpreadCalc = value;
+            _timeSpreadCalc.CalcDone += OnTimeSpreadCalcCalcDone;
+            _timeSpreadCalc.StartCalc += OnTimeSpreadCalcStartCalc;
         }
     }
 

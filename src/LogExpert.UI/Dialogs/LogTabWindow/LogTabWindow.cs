@@ -2601,7 +2601,8 @@ internal partial class LogTabWindow : Form, ILogTabWindow
     [SupportedOSPlatform("windows")]
     private void OnToolStripButtonBubblesClick (object sender, EventArgs e)
     {
-        _ = CurrentLogWindow?.ShowBookmarkBubbles = toolStripButtonBubbles.Checked;
+        if (CurrentLogWindow is not null)
+            CurrentLogWindow.ShowBookmarkBubbles = toolStripButtonBubbles.Checked;
     }
 
     [SupportedOSPlatform("windows")]

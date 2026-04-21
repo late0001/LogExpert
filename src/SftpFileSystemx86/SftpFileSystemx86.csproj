@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <RootNamespace>SftpFileSystem</RootNamespace>
@@ -54,6 +54,7 @@
 
   <ItemGroup>
     <PackageReference Include="SSH.NET" />
+    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
   <ItemGroup>

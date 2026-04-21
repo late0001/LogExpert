@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 
     <DocumentationFile>$(SolutionDir)..\bin\Docs\ColumnizerLib.xml</DocumentationFile>
 
     <RootNamespace>ColumnizerLib</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

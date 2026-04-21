@@ -182,7 +182,7 @@ if (UpdatesAvailable())
 
 ### "Plugin hash mismatch" after rebuild
 
-1. Regenerate hashes: `dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net10.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release`
+1. Regenerate hashes: `dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net9.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release`
 2. Rebuild solution
 3. Delete `%APPDATA%\LogExpert\trusted-plugins.json` for testing
 
@@ -251,10 +251,10 @@ dotnet build src/PluginRegistry.Tests/LogExpert.PluginRegistry.Tests.csproj --co
 dotnet build src/LogExpert.sln --configuration Release
 
 # 2. Verify plugins exist
-dir bin/Release/net10.0-windows/plugins/
+dir bin/Release/net9.0-windows/plugins/
 
 # 3. Then generate hashes
-dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net10.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release
+dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net9.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release
 ```
 ## Quick Start Guide
 
@@ -282,7 +282,7 @@ dotnet build src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj
 dotnet build src/LogExpert.sln --configuration Release
 
 # 3. Generate the hashes
-dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net10.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release
+dotnet run --project src/PluginHashGenerator.Tool/PluginHashGenerator.Tool.csproj -- "bin/Release/net9.0-windows/" "src/PluginRegistry/PluginHashGenerator.Generated.cs" Release
 
 # 4. Rebuild to include the generated file
 dotnet build src/PluginRegistry/LogExpert.PluginRegistry.csproj --configuration Release

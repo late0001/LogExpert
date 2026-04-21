@@ -90,10 +90,11 @@ public abstract class PositionAwareStreamReaderBase : LogStreamReaderBase
 
     public sealed override bool IsBufferComplete => true;
 
+    private static int _maximumLineLength;
     protected static int MaximumLineLength
     {
-        get => field;
-        private set => field = value;
+        get => _maximumLineLength;
+        private set => _maximumLineLength = value;
     }
 
     #endregion

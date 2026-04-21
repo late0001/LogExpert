@@ -336,16 +336,16 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     /// </summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public Color AutoBookmarkColor { get; set; } = Color.FromArgb(180, 210, 180);
-
+    private ILogLineMemoryColumnizer _currentColumnizer;
     public ILogLineMemoryColumnizer CurrentColumnizer
     {
-        get;
+        get => _currentColumnizer;
         private set
         {
             lock (_currentColumnizerLock)
             {
-                field = value;
-                _logger.Debug($"Setting columnizer {field.GetName()}");
+                _currentColumnizer = value;
+                _logger.Debug($"Setting columnizer {_currentColumnizer.GetName()}");
             }
         }
     }
@@ -371,10 +371,12 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public string SessionFileName { get; set; }
 
+    private bool _isMultiFile;
+
     public bool IsMultiFile
     {
-        get;
-        private set => _guiStateArgs.IsMultiFileActive = field = value;
+        get => _isMultiFile;
+        private set => _guiStateArgs.IsMultiFileActive = _isMultiFile = value;
     }
 
     public bool IsTempFile { get; }
@@ -1810,7 +1812,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     {
         var gridView = columnContextMenuStrip.SourceControl as BufferedDataGridView;
         var col = gridView.Columns[_selectedCol];
-        _ = col?.DisplayIndex = gridView.Columns.Count - 1;
+        if(col is not null) 
+            col.DisplayIndex = gridView.Columns.Count - 1;
     }
 
     [SupportedOSPlatform("windows")]
@@ -3317,7 +3320,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             CurrentColumnizer = columnizer;
             _freezeStateMap.Clear();
 
-            _ = _logFileReader?.PreProcessColumnizer = CurrentColumnizer is IPreProcessColumnizerMemory columnizer1
+            if (_logFileReader is not null)
+                _logFileReader.PreProcessColumnizer = CurrentColumnizer is IPreProcessColumnizerMemory columnizer1
                     ? columnizer1
                     : null;
 

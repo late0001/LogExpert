@@ -166,18 +166,19 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
     /// The value is recalculated on demand if the underlying buffers have changed since the last access. Accessing this
     /// property is thread-safe.
     /// </remarks>
+    private int _lineCount;
     public int LineCount
     {
         get
         {
             if (_isLineCountDirty)
             {
-                field = 0;
+                _lineCount = 0;
                 if (_bufferListLock.IsReadLockHeld || _bufferListLock.IsWriteLockHeld)
                 {
                     foreach (var buffer in _bufferList.Values)
                     {
-                        field += buffer.LineCount;
+                        _lineCount += buffer.LineCount;
                     }
                 }
                 else
@@ -187,7 +188,7 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
                     {
                         foreach (var buffer in _bufferList.Values)
                         {
-                            field += buffer.LineCount;
+                            _lineCount += buffer.LineCount;
                         }
                     }
                     finally
@@ -199,10 +200,10 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
                 _isLineCountDirty = false;
             }
 
-            return field;
+            return _lineCount;
         }
 
-        private set;
+        private set { _lineCount = value; }
     }
 
     /// <summary>
@@ -238,13 +239,14 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
     /// <summary>
     /// Gets or sets the encoding options used for text processing operations.
     /// </summary>
+    private EncodingOptions _encodingOptions;
     private EncodingOptions EncodingOptions
     {
-        get;
+        get => _encodingOptions;
         set
         {
             {
-                field = new EncodingOptions
+                _encodingOptions = new EncodingOptions
                 {
                     DefaultEncoding = value.DefaultEncoding,
                     Encoding = value.Encoding

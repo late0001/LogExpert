@@ -44,23 +44,23 @@ public class LogBuffer
     #region Properties
 
     public long StartPos { set; get; }
-
+    private long _size;
     public long Size
     {
         set
         {
-            field = value;
+            _size = value;
 #if DEBUG
             if (_filePositions.Count > 0)
             {
-                if (field < _filePositions[^1] - StartPos)
+                if (_size < _filePositions[^1] - StartPos)
                 {
                     _logger.Error("LogBuffer overall Size must be greater than last line file position!");
                 }
             }
 #endif
         }
-        get;
+        get => _size;
     }
 
     public int EndLine => StartLine + LineCount;

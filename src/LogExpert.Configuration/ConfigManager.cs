@@ -68,16 +68,17 @@ public class ConfigManager : IConfigManager
 
     #region Properties
 
+    private static ConfigManager _instance;
     public static ConfigManager Instance
     {
         get
         {
             lock (_monitor)
             {
-                field ??= new ConfigManager();
+                _instance ??= new ConfigManager();
             }
 
-            return field;
+            return _instance;
         }
     }
 

@@ -19,6 +19,8 @@ public class Column : IColumnMemory
                 ? ShortenMemory(input, _maxDisplayLength)
                 : input
     ];
+    private IColumnizedLogLineMemory _parent;
+    private ReadOnlyMemory<char> _fullValue;
 
     #endregion
 
@@ -42,15 +44,16 @@ public class Column : IColumnMemory
 
     public IColumnizedLogLineMemory Parent
     {
-        get; set => field = value;
+        get => _parent;
+        set => _parent = value;
     }
 
     public ReadOnlyMemory<char> FullValue
     {
-        get;
+        get => _fullValue;
         set
         {
-            field = value;
+            _fullValue = value;
 
             var temp = value;
 
