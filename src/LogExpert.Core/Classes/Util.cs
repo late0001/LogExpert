@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 using ColumnizerLib;
 
+using LogExpert.Core.Callback;
 using LogExpert.Core.Classes.Filter;
 
 namespace LogExpert.Core.Classes;
@@ -66,52 +67,103 @@ public static class Util
                 : $"{size / 1048576.0:0.00} MB";
     }
 
-    public static bool TestFilterCondition (FilterParams filterParams, ILogLineMemory logLine, ILogLineMemoryColumnizerCallback columnizerCallback)
+    //public static bool TestFilterCondition (FilterParams filterParams, ILogLineMemory logLine, ILogLineMemoryColumnizerCallback columnizerCallback)
+    //{
+    //    ArgumentNullException.ThrowIfNull(filterParams, nameof(filterParams));
+    //    ArgumentNullException.ThrowIfNull(logLine, nameof(logLine));
+
+    //    // TODO: Once FilterParams.LastLine is converted to ReadOnlyMemory<char>, this can be simplified to:
+    //    // if (MemoryExtensions.Equals(filterParams.LastLine.Span, logLine.FullLine.Span, StringComparison.OrdinalIgnoreCase))
+    //    if (MemoryExtensions.Equals(filterParams.LastLine.AsSpan(), logLine.FullLine.Span, StringComparison.OrdinalIgnoreCase))
+    //    {
+    //        return filterParams.LastResult;
+    //    }
+
+    //    var match = TestFilterMatch(filterParams, logLine, columnizerCallback);
+
+    //    // TODO: This ToString() allocation will be eliminated when LastLine becomes ReadOnlyMemory<char>
+    //    filterParams.LastLine = logLine.FullLine.ToString();
+
+    //    if (filterParams.IsRangeSearch)
+    //    {
+    //        if (!filterParams.IsInRange)
+    //        {
+    //            if (match)
+    //            {
+    //                filterParams.IsInRange = true;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            if (!match)
+    //            {
+    //                match = true;
+    //            }
+    //            else
+    //            {
+    //                filterParams.IsInRange = false;
+    //            }
+    //        }
+    //    }
+
+    //    if (filterParams.IsInvert)
+    //    {
+    //        match = !match;
+    //    }
+
+    //    filterParams.LastResult = match;
+    //    return match;
+    //}
+
+    public static bool TestFilterCondition (FilterParams filterParams, ILogLineMemory line, ColumnizerCallback callback)
     {
-        ArgumentNullException.ThrowIfNull(filterParams, nameof(filterParams));
-        ArgumentNullException.ThrowIfNull(logLine, nameof(logLine));
+        if (filterParams == null || filterParams.Rules.Count == 0)
+            return true;
 
-        // TODO: Once FilterParams.LastLine is converted to ReadOnlyMemory<char>, this can be simplified to:
-        // if (MemoryExtensions.Equals(filterParams.LastLine.Span, logLine.FullLine.Span, StringComparison.OrdinalIgnoreCase))
-        if (MemoryExtensions.Equals(filterParams.LastLine.AsSpan(), logLine.FullLine.Span, StringComparison.OrdinalIgnoreCase))
+        string lineText = line.FullLine.ToString();
+        bool hasIncludeRule = filterParams.Rules.Any(r => !r.IsExclude);
+        bool includeMatched = false;
+
+        foreach (var rule in filterParams.Rules)
         {
-            return filterParams.LastResult;
-        }
+            if (string.IsNullOrWhiteSpace(rule.Text))
+                continue;
 
-        var match = TestFilterMatch(filterParams, logLine, columnizerCallback);
+            bool isMatch = false;
 
-        // TODO: This ToString() allocation will be eliminated when LastLine becomes ReadOnlyMemory<char>
-        filterParams.LastLine = logLine.FullLine.ToString();
-
-        if (filterParams.IsRangeSearch)
-        {
-            if (!filterParams.IsInRange)
+            // 正则匹配
+            if (rule.IsRegex)
             {
-                if (match)
+                try
                 {
-                    filterParams.IsInRange = true;
+                    var regexOptions = rule.MatchCase ? System.Text.RegularExpressions.RegexOptions.None : System.Text.RegularExpressions.RegexOptions.IgnoreCase;
+                    isMatch = System.Text.RegularExpressions.Regex.IsMatch(lineText, rule.Text, regexOptions);
+                }
+                catch
+                {
+                    isMatch = false;
                 }
             }
+            // 普通文本匹配
             else
             {
-                if (!match)
-                {
-                    match = true;
-                }
-                else
-                {
-                    filterParams.IsInRange = false;
-                }
+                var comp = rule.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                isMatch = lineText.Contains(rule.Text, comp);
             }
+
+            // Exclude 规则：匹配到直接不显示
+            if (rule.IsExclude && isMatch)
+                return false;
+
+            // Include 规则：只要匹配一条就标记
+            if (!rule.IsExclude && isMatch)
+                includeMatched = true;
         }
 
-        if (filterParams.IsInvert)
-        {
-            match = !match;
-        }
-
-        filterParams.LastResult = match;
-        return match;
+        // 1. 有 Exclude 命中 → 隐藏
+        // 2. 有 Include 但没命中 → 隐藏
+        // 3. 无 Include → 全部显示
+        return !hasIncludeRule || includeMatched;
     }
 
     public static int DamerauLevenshteinDistance (ReadOnlySpan<char> source, ReadOnlySpan<char> destination, bool ignoreCase = false)

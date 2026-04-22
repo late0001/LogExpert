@@ -1110,7 +1110,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     [SupportedOSPlatform("windows")]
     private void OnFilterSearchButtonClick (object sender, EventArgs e)
     {
-        FilterSearch();
+        //FilterSearch();
+        FilterSearchv2();
     }
 
     [SupportedOSPlatform("windows")]
@@ -1812,7 +1813,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     {
         var gridView = columnContextMenuStrip.SourceControl as BufferedDataGridView;
         var col = gridView.Columns[_selectedCol];
-        if(col is not null) 
+        if (col is not null)
             col.DisplayIndex = gridView.Columns.Count - 1;
     }
 
@@ -4362,6 +4363,63 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
         //ConfigManager.SaveFilterParams(this.filterParams);
         ConfigManager.Settings.FilterParams = _filterParams; // wozu eigentlich? sinnlos seit MDI?
+
+        _shouldCancel = false;
+        _isSearching = true;
+        StatusLineText(Resources.LogWindow_UI_StatusLineText_FilterSearch_Filtering);
+        btnfilterSearch.Enabled = false;
+        ClearFilterList();
+
+        _progressEventArgs.MinValue = 0;
+        _progressEventArgs.MaxValue = dataGridView.RowCount;
+        _progressEventArgs.Value = 0;
+        _progressEventArgs.Visible = true;
+        SendProgressBarUpdate();
+
+        var settings = ConfigManager.Settings;
+
+        FilterFxAction = settings.Preferences.MultiThreadFilter ? MultiThreadedFilter : Filter;
+        var filterFxActionTask = Task.Run(() => FilterFxAction(_filterParams, _filterResultList, _lastFilterLinesList, _filterHitList)).ConfigureAwait(false);
+
+        await filterFxActionTask;
+        FilterComplete();
+
+        //fx.BeginInvoke(_filterParams, _filterResultList, _lastFilterLinesList, _filterHitList, FilterComplete, null);
+        //This needs to be invoked, because there is a potential CrossThreadException
+        _ = BeginInvoke(CheckForFilterDirty);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private async void FilterSearchv2()
+    {
+        FireCancelHandlers(); // make sure that there's no other filter running (maybe from filter restore)
+
+
+
+        _filterParams.IsCaseSensitive = filterCaseSensitiveCheckBox.Checked;
+        _filterParams.IsRegex = filterRegexCheckBox.Checked;
+        _filterParams.IsFilterTail = filterTailCheckBox.Checked;
+        _filterParams.IsInvert = invertFilterCheckBox.Checked;
+        if (_filterParams.IsRegex)
+        {
+            try
+            {
+                _filterParams.CreateRegex();
+            }
+            catch (ArgumentException)
+            {
+                StatusLineError(Resources.LogWindow_UI_StatusLineError_InvalidRegularExpression);
+                return;
+            }
+        }
+
+        _filterParams.FuzzyValue = knobControlFuzzy.Value;
+        _filterParams.SpreadBefore = knobControlFilterBackSpread.Value;
+        _filterParams.SpreadBehind = knobControlFilterForeSpread.Value;
+        _filterParams.ColumnRestrict = columnRestrictCheckBox.Checked;
+
+        //ConfigManager.SaveFilterParams(this.filterParams);
+        //ConfigManager.Settings.FilterParams = _filterParams; // wozu eigentlich? sinnlos seit MDI?
 
         _shouldCancel = false;
         _isSearching = true;
@@ -8192,4 +8250,32 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     }
 
     #endregion
+
+    public List<FilterRule> Rules = new();
+
+    private void btnAddFlt_Click (object sender, EventArgs e)
+    {
+        var dlg = new AddFilterDialog();
+        if (dlg.ShowDialog() == DialogResult.OK)
+        {
+            Rules.Add(dlg.Rule);
+            _filterParams.Rules = Rules;
+            RefreshList();
+        }
+    }
+    void RefreshList ()
+    {
+        listView1.Items.Clear();
+        foreach (var r in Rules)
+        {
+            var item = new ListViewItem(r.Text)
+            {
+                Tag = r
+            };
+            item.SubItems.Add(r.Description);
+            item.SubItems.Add(r.IsExclude ? "Exclude" : "Include");
+            item.SubItems.Add(r.IsRegex ? "Regex" : "Text");
+            listView1.Items.Add(item);
+        }
+    }
 }

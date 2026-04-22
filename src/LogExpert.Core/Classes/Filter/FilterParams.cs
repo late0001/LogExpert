@@ -24,6 +24,7 @@ public class FilterParams : ICloneable
 
     #endregion
 
+    public List<FilterRule> Rules { get; set; } = new();
     #region Properties
 
     public string SearchText { get; set; }
