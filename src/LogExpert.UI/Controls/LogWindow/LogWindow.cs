@@ -2001,6 +2001,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (e.ColumnIndex == 0)
         {
             ToggleBookmark();
+        }else if(e.ColumnIndex == 2)
+        {
+            CopyMarkedLinesToAddFilterDlg();
         }
     }
 
@@ -5285,6 +5288,74 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             }
 
             Clipboard.SetText(clipText.ToString());
+        }
+    }
+
+    private void CopyMarkedLinesToAddFilterDlg()
+    {
+        if (_guiStateArgs.CellSelectMode)
+        {
+            var data = dataGridView.GetClipboardContent();
+            Clipboard.SetDataObject(data);
+        }
+        else
+        {
+            List<int> lineNumList = [];
+            foreach (DataGridViewRow row in dataGridView.SelectedRows)
+            {
+                if (row.Index != -1)
+                {
+                    lineNumList.Add(row.Index);
+                }
+            }
+
+            lineNumList.Sort();
+            StringBuilder text = new();
+            LogExpertCallback callback = new(this);
+
+            foreach (var lineNum in lineNumList)
+            {
+                var line = _logFileReader.GetLogLineMemory(lineNum);
+                if (CurrentColumnizer is ILogLineMemoryXmlColumnizer xmlColumnizer)
+                {
+                    callback.LineNum = lineNum;
+                    line = xmlColumnizer.GetLineTextForClipboard(line, callback);
+                }
+
+                _ = text.AppendLine(line == null ? string.Empty : $"{line.FullLine}");
+            }
+            var dlg = new AddFilterDialog(text.ToString());
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                var newRule = dlg.Rule;
+
+                if (listView1.SelectedItems.Count > 0)
+                {
+                    int insertIndex = listView1.SelectedItems[0].Index;
+                    Rules.Insert(insertIndex, newRule);
+
+                    var item = new ListViewItem(""); // ID列占位
+                    item.SubItems.Add(newRule.Text);
+                    item.SubItems.Add(newRule.Description);
+                    item.Tag = newRule;
+
+                    listView1.Items.Insert(insertIndex, item);
+                }
+                else
+                {
+                    Rules.Add(newRule);
+
+                    var item = new ListViewItem("");
+                    item.SubItems.Add(newRule.Text);
+                    item.SubItems.Add(newRule.Description);
+                    item.Tag = newRule;
+
+                    listView1.Items.Add(item);
+                }
+
+                RefreshIDs(); // 刷新所有ID
+                _filterParams.Rules = Rules;
+            }
         }
     }
 

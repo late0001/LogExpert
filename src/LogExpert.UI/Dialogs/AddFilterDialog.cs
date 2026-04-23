@@ -20,6 +20,11 @@ public partial class AddFilterDialog : Form
         Rule = new FilterRule();
     }
 
+    public AddFilterDialog (string line): this()
+    {
+        txtText.Text = line;
+    }
+
     public AddFilterDialog (FilterRule rule) : this()
     {
         Rule = rule;
