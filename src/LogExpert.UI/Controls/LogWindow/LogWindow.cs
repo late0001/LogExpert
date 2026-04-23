@@ -276,7 +276,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         _bookmarkProvider.BookmarkAdded += OnBookmarkProviderBookmarkAdded;
         _bookmarkProvider.BookmarkRemoved += OnBookmarkProviderBookmarkRemoved;
         _bookmarkProvider.AllBookmarksRemoved += OnBookmarkProviderAllBookmarksRemoved;
-
+        
+        listView1.ContextMenuStrip = filterLvContextMenuStrip;
+        
         ResumeLayout();
     }
 
@@ -4390,7 +4392,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     }
 
     [SupportedOSPlatform("windows")]
-    private async void FilterSearchv2()
+    private async void FilterSearchv2 ()
     {
         FireCancelHandlers(); // make sure that there's no other filter running (maybe from filter restore)
 
@@ -8276,6 +8278,69 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             item.SubItems.Add(r.IsExclude ? "Exclude" : "Include");
             item.SubItems.Add(r.IsRegex ? "Regex" : "Text");
             listView1.Items.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// 刷新第0列ID：从1开始连续编号
+    /// </summary>
+    private void RefreshIDs ()
+    {
+        for (int i = 0; i < listView1.Items.Count; i++)
+        {
+            listView1.Items[i].Text = (i + 1).ToString();
+        }
+    }
+
+    private void addFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
+    {
+        var dlg = new AddFilterDialog();
+        if (dlg.ShowDialog() == DialogResult.OK)
+        {
+            var newRule = dlg.Rule;
+
+            if (listView1.SelectedItems.Count > 0)
+            {
+                int insertIndex = listView1.SelectedItems[0].Index;
+                Rules.Insert(insertIndex, newRule);
+
+                var item = new ListViewItem(""); // ID列占位
+                item.SubItems.Add(newRule.Text);
+                item.SubItems.Add(newRule.Description);
+                item.Tag = newRule;
+
+                listView1.Items.Insert(insertIndex, item);
+            }
+            else
+            {
+                Rules.Add(newRule);
+
+                var item = new ListViewItem("");
+                item.SubItems.Add(newRule.Text);
+                item.SubItems.Add(newRule.Description);
+                item.Tag = newRule;
+
+                listView1.Items.Add(item);
+            }
+
+            RefreshIDs(); // 刷新所有ID
+            _filterParams.Rules = Rules;
+        }
+    }
+
+    private void removeFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
+    {
+        // 没有选中项 → 直接退出
+        if (listView1.SelectedItems.Count == 0)
+            return;
+
+        var item = listView1.SelectedItems[0];
+        if (item.Tag is FilterRule rule)
+        {
+            Rules.Remove(rule);       // 从规则列表删除
+            listView1.Items.Remove(item); // 从界面删除
+            RefreshIDs(); // 删除后刷新ID
+            _filterParams.Rules = Rules;  // 同步
         }
     }
 }

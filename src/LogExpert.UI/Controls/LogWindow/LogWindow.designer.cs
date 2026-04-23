@@ -63,6 +63,7 @@ namespace LogExpert.UI.Controls.LogWindow
             advancedBackPanel = new Panel();
             advancedFilterSplitContainer = new SplitContainer();
             pnlProFilter = new Panel();
+            listView1 = new ListView();
             btnColumn = new Button();
             columnRestrictCheckBox = new CheckBox();
             rangeCheckBox = new CheckBox();
@@ -127,7 +128,12 @@ namespace LogExpert.UI.Controls.LogWindow
             filterForSelectionToolStripMenuItem = new ToolStripMenuItem();
             setSelectedTextAsBookmarkCommentToolStripMenuItem = new ToolStripMenuItem();
             helpToolTip = new ToolTip(components);
-            listView1 = new ListView();
+            filterLvContextMenuStrip = new ContextMenuStrip(components);
+            addFilterRuleToolStripMenuItem = new ToolStripMenuItem();
+            removeFilterRuleToolStripMenuItem = new ToolStripMenuItem();
+            lvColHeader1 = new ColumnHeader();
+            lvColHeader2 = new ColumnHeader();
+            lvColHeader3 = new ColumnHeader();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -159,6 +165,7 @@ namespace LogExpert.UI.Controls.LogWindow
             bookmarkContextMenuStrip.SuspendLayout();
             columnContextMenuStrip.SuspendLayout();
             editModeContextMenuStrip.SuspendLayout();
+            filterLvContextMenuStrip.SuspendLayout();
             SuspendLayout();
             // 
             // splitContainerLogWindow
@@ -480,6 +487,17 @@ namespace LogExpert.UI.Controls.LogWindow
             pnlProFilter.Name = "pnlProFilter";
             pnlProFilter.Size = new Size(1530, 231);
             pnlProFilter.TabIndex = 0;
+            // 
+            // listView1
+            // 
+            listView1.Columns.AddRange(new ColumnHeader[] { lvColHeader1, lvColHeader2, lvColHeader3 });
+            listView1.FullRowSelect = true;
+            listView1.Location = new Point(9, 61);
+            listView1.Name = "listView1";
+            listView1.Size = new Size(723, 167);
+            listView1.TabIndex = 16;
+            listView1.UseCompatibleStateImageBehavior = false;
+            listView1.View = View.Details;
             // 
             // btnColumn
             // 
@@ -1155,13 +1173,38 @@ namespace LogExpert.UI.Controls.LogWindow
             setSelectedTextAsBookmarkCommentToolStripMenuItem.Text = "Set selected text as bookmark comment";
             setSelectedTextAsBookmarkCommentToolStripMenuItem.Click += OnSetSelectedTextAsBookmarkCommentToolStripMenuItemClick;
             // 
-            // listView1
+            // filterLvContextMenuStrip
             // 
-            listView1.Location = new Point(9, 61);
-            listView1.Name = "listView1";
-            listView1.Size = new Size(723, 167);
-            listView1.TabIndex = 16;
-            listView1.UseCompatibleStateImageBehavior = false;
+            filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem });
+            filterLvContextMenuStrip.Name = "filterLvContextMenuStrip";
+            filterLvContextMenuStrip.Size = new Size(156, 48);
+            // 
+            // addFilterRuleToolStripMenuItem
+            // 
+            addFilterRuleToolStripMenuItem.Name = "addFilterRuleToolStripMenuItem";
+            addFilterRuleToolStripMenuItem.Size = new Size(155, 22);
+            addFilterRuleToolStripMenuItem.Text = "Add Filter";
+            addFilterRuleToolStripMenuItem.Click += addFilterRuleToolStripMenuItem_Click;
+            // 
+            // removeFilterRuleToolStripMenuItem
+            // 
+            removeFilterRuleToolStripMenuItem.Name = "removeFilterRuleToolStripMenuItem";
+            removeFilterRuleToolStripMenuItem.Size = new Size(155, 22);
+            removeFilterRuleToolStripMenuItem.Text = "Remove Filter";
+            removeFilterRuleToolStripMenuItem.Click += removeFilterRuleToolStripMenuItem_Click;
+            // 
+            // lvColHeader1
+            // 
+            lvColHeader1.Text = "Id";
+            // 
+            // lvColHeader2
+            // 
+            lvColHeader2.Text = "Pattern";
+            lvColHeader2.Width = 350;
+            // 
+            // lvColHeader3
+            // 
+            lvColHeader3.Text = "Description";
             // 
             // LogWindow
             // 
@@ -1217,6 +1260,7 @@ namespace LogExpert.UI.Controls.LogWindow
             bookmarkContextMenuStrip.ResumeLayout(false);
             columnContextMenuStrip.ResumeLayout(false);
             editModeContextMenuStrip.ResumeLayout(false);
+            filterLvContextMenuStrip.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -1315,5 +1359,11 @@ namespace LogExpert.UI.Controls.LogWindow
         private ToolStripSeparator menuToolStripSeparator6;
         private Button btnAddFlt;
         private ListView listView1;
+        private ContextMenuStrip filterLvContextMenuStrip;
+        private ToolStripMenuItem addFilterRuleToolStripMenuItem;
+        private ToolStripMenuItem removeFilterRuleToolStripMenuItem;
+        private ColumnHeader lvColHeader1;
+        private ColumnHeader lvColHeader2;
+        private ColumnHeader lvColHeader3;
     }
 }
