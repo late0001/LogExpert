@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
 using ColumnizerLib;
 using ColumnizerLib.Extensions;
@@ -276,9 +277,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         _bookmarkProvider.BookmarkAdded += OnBookmarkProviderBookmarkAdded;
         _bookmarkProvider.BookmarkRemoved += OnBookmarkProviderBookmarkRemoved;
         _bookmarkProvider.AllBookmarksRemoved += OnBookmarkProviderAllBookmarksRemoved;
-        
+
         listView1.ContextMenuStrip = filterLvContextMenuStrip;
-        
+
         ResumeLayout();
     }
 
@@ -2001,7 +2002,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (e.ColumnIndex == 0)
         {
             ToggleBookmark();
-        }else if(e.ColumnIndex == 2)
+        }
+        else if (e.ColumnIndex == 2)
         {
             CopyMarkedLinesToAddFilterDlg();
         }
@@ -5291,7 +5293,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         }
     }
 
-    private void CopyMarkedLinesToAddFilterDlg()
+    private void CopyMarkedLinesToAddFilterDlg ()
     {
         if (_guiStateArgs.CellSelectMode)
         {
@@ -8412,6 +8414,77 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             listView1.Items.Remove(item); // 从界面删除
             RefreshIDs(); // 删除后刷新ID
             _filterParams.Rules = Rules;  // 同步
+        }
+    }
+    private void SaveFilterRules (string filePath)
+    {
+        try
+        {
+            FilterRuleList list = new FilterRuleList { Rules = this.Rules };
+            XmlSerializer serializer = new XmlSerializer(typeof(FilterRuleList));
+
+            using (StreamWriter sw = new StreamWriter(filePath))
+            {
+                serializer.Serialize(sw, list);
+            }
+        }
+        catch
+        {
+            MessageBox.Show("Save filter failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+
+    private void LoadFilterRules (string filePath)
+    {
+        try
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(FilterRuleList));
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                if (serializer.Deserialize(sr) is FilterRuleList list)
+                {
+                    Rules.Clear();
+                    Rules.AddRange(list.Rules);
+
+                    listView1.Items.Clear();
+                    foreach (var rule in Rules)
+                    {
+                        var item = new ListViewItem("");
+                        item.SubItems.Add(rule.Text);
+                        item.SubItems.Add(rule.Description);
+                        item.Tag = rule;
+                        listView1.Items.Add(item);
+                    }
+
+                    RefreshIDs();
+                    _filterParams.Rules = Rules;
+                }
+            }
+        }
+        catch
+        {
+            MessageBox.Show("Load filter failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void loadFiltersToolStripMenuItem_Click (object sender, EventArgs e)
+    {
+        using OpenFileDialog ofd = new OpenFileDialog();
+        ofd.Filter = "Text Analysis Tool Filter (*.ta)|*.ta";
+        if (ofd.ShowDialog() == DialogResult.OK)
+        {
+            LoadFilterRules(ofd.FileName);
+        }
+    }
+
+    private void saveFiltersToolStripMenuItem_Click (object sender, EventArgs e)
+    {
+        using SaveFileDialog sfd = new SaveFileDialog();
+        sfd.Filter = "Text Analysis Tool Filter (*.ta)|*.ta";
+        if (sfd.ShowDialog() == DialogResult.OK)
+        {
+            SaveFilterRules(sfd.FileName);
         }
     }
 }

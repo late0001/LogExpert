@@ -64,6 +64,9 @@ namespace LogExpert.UI.Controls.LogWindow
             advancedFilterSplitContainer = new SplitContainer();
             pnlProFilter = new Panel();
             listView1 = new ListView();
+            lvColHeader1 = new ColumnHeader();
+            lvColHeader2 = new ColumnHeader();
+            lvColHeader3 = new ColumnHeader();
             btnColumn = new Button();
             columnRestrictCheckBox = new CheckBox();
             rangeCheckBox = new CheckBox();
@@ -131,9 +134,8 @@ namespace LogExpert.UI.Controls.LogWindow
             filterLvContextMenuStrip = new ContextMenuStrip(components);
             addFilterRuleToolStripMenuItem = new ToolStripMenuItem();
             removeFilterRuleToolStripMenuItem = new ToolStripMenuItem();
-            lvColHeader1 = new ColumnHeader();
-            lvColHeader2 = new ColumnHeader();
-            lvColHeader3 = new ColumnHeader();
+            loadFiltersToolStripMenuItem = new ToolStripMenuItem();
+            saveFiltersToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -498,6 +500,19 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.TabIndex = 16;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
+            // 
+            // lvColHeader1
+            // 
+            lvColHeader1.Text = "Id";
+            // 
+            // lvColHeader2
+            // 
+            lvColHeader2.Text = "Pattern";
+            lvColHeader2.Width = 350;
+            // 
+            // lvColHeader3
+            // 
+            lvColHeader3.Text = "Description";
             // 
             // btnColumn
             // 
@@ -1175,9 +1190,9 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             // filterLvContextMenuStrip
             // 
-            filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem });
+            filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem, loadFiltersToolStripMenuItem, saveFiltersToolStripMenuItem });
             filterLvContextMenuStrip.Name = "filterLvContextMenuStrip";
-            filterLvContextMenuStrip.Size = new Size(156, 48);
+            filterLvContextMenuStrip.Size = new Size(156, 92);
             // 
             // addFilterRuleToolStripMenuItem
             // 
@@ -1193,18 +1208,19 @@ namespace LogExpert.UI.Controls.LogWindow
             removeFilterRuleToolStripMenuItem.Text = "Remove Filter";
             removeFilterRuleToolStripMenuItem.Click += removeFilterRuleToolStripMenuItem_Click;
             // 
-            // lvColHeader1
+            // loadFiltersToolStripMenuItem
             // 
-            lvColHeader1.Text = "Id";
+            loadFiltersToolStripMenuItem.Name = "loadFiltersToolStripMenuItem";
+            loadFiltersToolStripMenuItem.Size = new Size(155, 22);
+            loadFiltersToolStripMenuItem.Text = "Load";
+            loadFiltersToolStripMenuItem.Click += loadFiltersToolStripMenuItem_Click;
             // 
-            // lvColHeader2
+            // saveFiltersToolStripMenuItem
             // 
-            lvColHeader2.Text = "Pattern";
-            lvColHeader2.Width = 350;
-            // 
-            // lvColHeader3
-            // 
-            lvColHeader3.Text = "Description";
+            saveFiltersToolStripMenuItem.Name = "saveFiltersToolStripMenuItem";
+            saveFiltersToolStripMenuItem.Size = new Size(155, 22);
+            saveFiltersToolStripMenuItem.Text = "Save";
+            saveFiltersToolStripMenuItem.Click += saveFiltersToolStripMenuItem_Click;
             // 
             // LogWindow
             // 
@@ -1365,5 +1381,7 @@ namespace LogExpert.UI.Controls.LogWindow
         private ColumnHeader lvColHeader1;
         private ColumnHeader lvColHeader2;
         private ColumnHeader lvColHeader3;
+        private ToolStripMenuItem saveFiltersToolStripMenuItem;
+        private ToolStripMenuItem loadFiltersToolStripMenuItem;
     }
 }
