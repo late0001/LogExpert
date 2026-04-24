@@ -37,7 +37,8 @@ partial class AddFilterDialog
         chkExclude = new CheckBox();
         chkCase = new CheckBox();
         chkRegex = new CheckBox();
-        btnColor = new Button();
+        btnBackground = new Button();
+        btnTextColor = new Button();
         SuspendLayout();
         // 
         // btnOk
@@ -121,15 +122,25 @@ partial class AddFilterDialog
         chkRegex.Text = "Regular expression [R]";
         chkRegex.UseVisualStyleBackColor = true;
         // 
-        // btnColor
+        // btnBackground
         // 
-        btnColor.Location = new Point(533, 11);
-        btnColor.Name = "btnColor";
-        btnColor.Size = new Size(94, 27);
-        btnColor.TabIndex = 0;
-        btnColor.Text = "Color";
-        btnColor.UseVisualStyleBackColor = true;
-        btnColor.Click += btnColor_Click;
+        btnBackground.Location = new Point(533, 11);
+        btnBackground.Name = "btnBackground";
+        btnBackground.Size = new Size(94, 27);
+        btnBackground.TabIndex = 0;
+        btnBackground.Text = "Color";
+        btnBackground.UseVisualStyleBackColor = true;
+        btnBackground.Click += btnBackground_Click;
+        // 
+        // btnTextColor
+        // 
+        btnTextColor.Location = new Point(424, 12);
+        btnTextColor.Name = "btnTextColor";
+        btnTextColor.Size = new Size(94, 27);
+        btnTextColor.TabIndex = 0;
+        btnTextColor.Text = "TextColor";
+        btnTextColor.UseVisualStyleBackColor = true;
+        btnTextColor.Click += btnTextColor_Click;
         // 
         // AddFilterDialog
         // 
@@ -144,7 +155,8 @@ partial class AddFilterDialog
         Controls.Add(label2);
         Controls.Add(label1);
         Controls.Add(btnCancel);
-        Controls.Add(btnColor);
+        Controls.Add(btnTextColor);
+        Controls.Add(btnBackground);
         Controls.Add(btnOk);
         Name = "AddFilterDialog";
         Text = "AddFilterDialog";
@@ -163,5 +175,6 @@ partial class AddFilterDialog
     private CheckBox chkExclude;
     private CheckBox chkCase;
     private CheckBox chkRegex;
-    private Button btnColor;
+    private Button btnBackground;
+    private Button btnTextColor;
 }

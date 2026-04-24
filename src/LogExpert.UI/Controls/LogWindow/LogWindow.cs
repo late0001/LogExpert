@@ -31,6 +31,8 @@ using NLog;
 using Vanara.Extensions;
 
 using WeifenLuo.WinFormsUI.Docking;
+
+using static Vanara.PInvoke.CldApi;
 //using static LogExpert.PluginRegistry.PluginRegistry; //TODO: Adjust the instance name so using static can be used.
 
 namespace LogExpert.UI.Controls.LogWindow;
@@ -279,6 +281,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         _bookmarkProvider.AllBookmarksRemoved += OnBookmarkProviderAllBookmarksRemoved;
 
         listView1.ContextMenuStrip = filterLvContextMenuStrip;
+        listView1.OwnerDraw = true;
 
         ResumeLayout();
     }
@@ -6666,8 +6669,39 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             }
             else
             {
-                e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
-                e.PaintBackground(e.ClipBounds, false);
+                // 整行先铺色 
+                Color ruleBg = Color.Empty;
+                Color ruleFg = Color.Black;
+
+                if (columnIndex == 2) // 只对内容列生效
+                {
+                    string lineText = _logFileReader.GetLogLineMemoryWithWait(rowIndex).Result?.FullLine.ToString() ?? "";
+
+                    foreach (var rule in _filterParams.Rules)
+                    {
+                        if (rule.IsExclude) continue;
+
+                        if (IsRuleMatch(lineText, rule))
+                        {
+                            ruleBg = rule.Background;
+                            ruleFg = rule.TextColor;
+                            break;
+                        }
+                    }
+                }
+                //e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
+                //e.PaintBackground(e.ClipBounds, false);
+                if (ruleBg != Color.Empty && ruleBg != Color.Transparent)
+                {
+                    using var br = new SolidBrush(ruleBg);
+                    e.Graphics.FillRectangle(br, e.CellBounds);
+                }
+                else
+                {
+                    e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
+                    e.PaintBackground(e.ClipBounds, false);
+                }
+
             }
 
             if (DebugOptions.DisableWordHighlight)
@@ -8371,28 +8405,20 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (dlg.ShowDialog() == DialogResult.OK)
         {
             var newRule = dlg.Rule;
+            var item = new ListViewItem(""); // ID列占位
+            item.SubItems.Add(newRule.Text);
+            item.SubItems.Add(newRule.Description);
+            item.Tag = newRule;
 
             if (listView1.SelectedItems.Count > 0)
             {
                 int insertIndex = listView1.SelectedItems[0].Index;
                 Rules.Insert(insertIndex, newRule);
-
-                var item = new ListViewItem(""); // ID列占位
-                item.SubItems.Add(newRule.Text);
-                item.SubItems.Add(newRule.Description);
-                item.Tag = newRule;
-
                 listView1.Items.Insert(insertIndex, item);
             }
             else
             {
                 Rules.Add(newRule);
-
-                var item = new ListViewItem("");
-                item.SubItems.Add(newRule.Text);
-                item.SubItems.Add(newRule.Description);
-                item.Tag = newRule;
-
                 listView1.Items.Add(item);
             }
 
@@ -8486,5 +8512,65 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         {
             SaveFilterRules(sfd.FileName);
         }
+    }
+
+    // 判断一行是否匹配 FilterRule
+    private bool IsRuleMatch (string lineText, FilterRule rule)
+    {
+        if (string.IsNullOrWhiteSpace(rule.Text))
+            return false;
+
+        try
+        {
+            if (rule.IsRegex)
+            {
+                RegexOptions opt = rule.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase;
+                return Regex.IsMatch(lineText, rule.Text, opt);
+            }
+            else
+            {
+                StringComparison comp = rule.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                return lineText.Contains(rule.Text, comp);
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    // 自动选黑色/白色前景（保证文字看得清）
+    private Color GetContrastColor (Color bg)
+    {
+        int brightness = (bg.R * 299 + bg.G * 587 + bg.B * 114) / 1000;
+        return brightness > 125 ? Color.Black : Color.White;
+    }
+
+    private void listView1_DrawSubItem (object sender, DrawListViewSubItemEventArgs e)
+    {
+        if (e.Item.Tag is FilterRule rule)
+        {
+            // 第1列是 Text，我们要上色
+            if (e.ColumnIndex == 1)
+            {
+                // 画背景
+                using (Brush br = new SolidBrush(rule.Background))
+                    e.Graphics.FillRectangle(br, e.Bounds);
+
+                // 画文字
+                using (Brush br = new SolidBrush(rule.TextColor))
+                    e.Graphics.DrawString(
+                        e.SubItem.Text,
+                        e.Item.Font,
+                        br,
+                        e.Bounds.X + 2,
+                        e.Bounds.Y + 2);
+
+                return;
+            }
+        }
+
+        // 其他列默认绘制
+        e.DrawDefault = true;
     }
 }

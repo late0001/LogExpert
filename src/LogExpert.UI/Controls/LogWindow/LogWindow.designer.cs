@@ -500,6 +500,7 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.TabIndex = 16;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
+            listView1.DrawSubItem += listView1_DrawSubItem;
             // 
             // lvColHeader1
             // 

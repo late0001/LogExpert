@@ -20,7 +20,7 @@ public partial class AddFilterDialog : Form
         Rule = new FilterRule();
     }
 
-    public AddFilterDialog (string line): this()
+    public AddFilterDialog (string line) : this()
     {
         txtText.Text = line;
     }
@@ -45,14 +45,24 @@ public partial class AddFilterDialog : Form
         DialogResult = DialogResult.OK;
     }
 
-    private void btnColor_Click (object sender, EventArgs e)
+    private void btnBackground_Click (object sender, EventArgs e)
     {
         using var cd = new ColorDialog();
         if (cd.ShowDialog() == DialogResult.OK)
         {
-            Rule.HighlightColor = cd.Color;
-            btnColor.BackColor = cd.Color;
+            Rule.Background = cd.Color;
+            txtText.BackColor = cd.Color;
         }
-            
+
+    }
+
+    private void btnTextColor_Click (object sender, EventArgs e)
+    {
+        using var cd = new ColorDialog();
+        if (cd.ShowDialog() == DialogResult.OK)
+        {
+            Rule.TextColor = cd.Color;
+            txtText.ForeColor = cd.Color;
+        }
     }
 }
