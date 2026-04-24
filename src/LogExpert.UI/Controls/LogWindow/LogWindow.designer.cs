@@ -500,6 +500,7 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.TabIndex = 16;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
+            listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawSubItem += listView1_DrawSubItem;
             // 
             // lvColHeader1
@@ -509,11 +510,12 @@ namespace LogExpert.UI.Controls.LogWindow
             // lvColHeader2
             // 
             lvColHeader2.Text = "Pattern";
-            lvColHeader2.Width = 350;
+            lvColHeader2.Width = 500;
             // 
             // lvColHeader3
             // 
             lvColHeader3.Text = "Description";
+            lvColHeader3.Width = 85;
             // 
             // btnColumn
             // 

@@ -8573,4 +8573,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         // 其他列默认绘制
         e.DrawDefault = true;
     }
+
+    private void listView1_DrawColumnHeader (object sender, DrawListViewColumnHeaderEventArgs e)
+    {
+        e.DrawDefault = true;
+    }
 }
