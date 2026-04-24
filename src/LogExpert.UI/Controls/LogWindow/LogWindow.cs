@@ -3451,6 +3451,20 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     private void PaintHighlightedCell (DataGridViewCellPaintingEventArgs e, HighlightEntry groundEntry)
     {
+        Color textColor = Color.Black;
+        Color backColor = Color.Transparent;
+
+        if (e.CellStyle.Tag is FilterRule rule)
+        {
+            textColor = rule.TextColor;
+            backColor = rule.Background;
+        }
+        else
+        {
+            textColor = groundEntry?.ForegroundColor ?? Color.FromKnownColor(KnownColor.Black);
+            backColor = groundEntry?.BackgroundColor ?? Color.Empty;
+        }
+
         var column = e.Value as IColumnMemory;
 
         column ??= Column.EmptyColumn;
@@ -3465,8 +3479,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         var he = new HighlightEntry
         {
             SearchText = column.DisplayValue.ToString(),
-            ForegroundColor = groundEntry?.ForegroundColor ?? Color.FromKnownColor(KnownColor.Black),
-            BackgroundColor = groundEntry?.BackgroundColor ?? Color.Empty,
+            ForegroundColor = textColor,
+            BackgroundColor = backColor,
             IsWordMatch = true
         };
 
@@ -6670,30 +6684,26 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             else
             {
                 // 整行先铺色 
-                Color ruleBg = Color.Empty;
-                Color ruleFg = Color.Black;
+                FilterRule matchedRule = null;
 
                 if (columnIndex == 2) // 只对内容列生效
                 {
-                    string lineText = _logFileReader.GetLogLineMemoryWithWait(rowIndex).Result?.FullLine.ToString() ?? "";
+                    string lineText = line?.FullLine.ToString() ?? "";
 
                     foreach (var rule in _filterParams.Rules)
                     {
-                        if (rule.IsExclude) continue;
-
-                        if (IsRuleMatch(lineText, rule))
+                        if (!rule.IsExclude && IsRuleMatch(lineText, rule))
                         {
-                            ruleBg = rule.Background;
-                            ruleFg = rule.TextColor;
+                            matchedRule = rule;
                             break;
                         }
                     }
                 }
-                //e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
-                //e.PaintBackground(e.ClipBounds, false);
-                if (ruleBg != Color.Empty && ruleBg != Color.Transparent)
+
+                e.CellStyle.Tag = matchedRule;
+                if (matchedRule != null && matchedRule.Background != Color.Transparent)
                 {
-                    using var br = new SolidBrush(ruleBg);
+                    using var br = new SolidBrush(matchedRule.Background);
                     e.Graphics.FillRectangle(br, e.CellBounds);
                 }
                 else
