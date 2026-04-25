@@ -1,3 +1,9 @@
+using System;
+using System.Windows.Forms;
+using System.Windows.Shapes;
+
+using Vanara.PInvoke;
+
 namespace LogExpert.UI.Dialogs;
 
 partial class AddFilterDialog
@@ -37,8 +43,10 @@ partial class AddFilterDialog
         chkExclude = new CheckBox();
         chkCase = new CheckBox();
         chkRegex = new CheckBox();
-        btnBackground = new Button();
-        btnTextColor = new Button();
+        cboTextColor = new ComboBox();
+        label3 = new Label();
+        label4 = new Label();
+        cboBackground = new ComboBox();
         SuspendLayout();
         // 
         // btnOk
@@ -122,41 +130,67 @@ partial class AddFilterDialog
         chkRegex.Text = "Regular expression [R]";
         chkRegex.UseVisualStyleBackColor = true;
         // 
-        // btnBackground
+        // cboTextColor
         // 
-        btnBackground.Location = new Point(533, 11);
-        btnBackground.Name = "btnBackground";
-        btnBackground.Size = new Size(94, 27);
-        btnBackground.TabIndex = 0;
-        btnBackground.Text = "Color";
-        btnBackground.UseVisualStyleBackColor = true;
-        btnBackground.Click += btnBackground_Click;
+        cboTextColor.DrawMode = DrawMode.OwnerDrawFixed;
+        cboTextColor.DropDownStyle = ComboBoxStyle.DropDownList;
+        cboTextColor.FormattingEnabled = true;
+        cboTextColor.Items.AddRange(new object[] { Color.Black, Color.Maroon, Color.DarkGreen, Color.Olive, Color.DarkBlue, Color.Purple, Color.Aquamarine, Color.Red, Color.Green, Color.Yellow, Color.Blue, Color.Magenta, Color.Cyan, Color.CadetBlue, Color.Chartreuse, Color.Chocolate, Color.CornflowerBlue, Color.Crimson, Color.DarkCyan, Color.DarkMagenta, Color.DeepPink, Color.Firebrick, Color.Goldenrod, Color.HotPink, Color.Indigo, Color.Lime, Color.Orange, Color.Salmon, Color.SeaGreen, Color.SlateBlue, Color.Teal, Color.Violet, Color.Black, Color.White });
+        cboTextColor.Location = new Point(341, 14);
+        cboTextColor.Name = "cboTextColor";
+        cboTextColor.Size = new Size(91, 24);
+        cboTextColor.TabIndex = 4;
+        cboTextColor.DrawItem += cboTextColor_DrawItem;
+        cboTextColor.SelectedIndexChanged += cboTextColor_SelectedIndexChanged;
         // 
-        // btnTextColor
+        // label3
         // 
-        btnTextColor.Location = new Point(424, 12);
-        btnTextColor.Name = "btnTextColor";
-        btnTextColor.Size = new Size(94, 27);
-        btnTextColor.TabIndex = 0;
-        btnTextColor.Text = "TextColor";
-        btnTextColor.UseVisualStyleBackColor = true;
-        btnTextColor.Click += btnTextColor_Click;
+        label3.AutoSize = true;
+        label3.Location = new Point(264, 17);
+        label3.Name = "label3";
+        label3.Size = new Size(71, 17);
+        label3.TabIndex = 1;
+        label3.Text = "Text Color:";
+        // 
+        // label4
+        // 
+        label4.AutoSize = true;
+        label4.Location = new Point(452, 17);
+        label4.Name = "label4";
+        label4.Size = new Size(82, 17);
+        label4.TabIndex = 1;
+        label4.Text = "Background:";
+        // 
+        // cboBackground
+        // 
+        cboBackground.DrawMode = DrawMode.OwnerDrawFixed;
+        cboBackground.DropDownStyle = ComboBoxStyle.DropDownList;
+        cboBackground.FormattingEnabled = true;
+        cboBackground.Items.AddRange(new object[] { Color.Transparent, Color.LightPink, Color.LightSalmon, Color.LightCoral, Color.Plum, Color.Gainsboro, Color.LightGray, Color.LightSlateGray, Color.PaleTurquoise, Color.LightBlue, Color.LightSkyBlue, Color.RoyalBlue, Color.Aquamarine, Color.LightGreen, Color.Green, Color.Khaki, Color.Yellow, Color.Orange, Color.Red, Color.DarkViolet, Color.Black, Color.White });
+        cboBackground.Location = new Point(536, 14);
+        cboBackground.Name = "cboBackground";
+        cboBackground.Size = new Size(91, 24);
+        cboBackground.TabIndex = 4;
+        cboBackground.DrawItem += cboBackground_DrawItem;
+        cboBackground.SelectedIndexChanged += cboBackground_SelectedIndexChanged;
         // 
         // AddFilterDialog
         // 
         AutoScaleDimensions = new SizeF(7F, 17F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(670, 209);
+        Controls.Add(cboBackground);
+        Controls.Add(cboTextColor);
         Controls.Add(chkRegex);
         Controls.Add(chkCase);
         Controls.Add(chkExclude);
         Controls.Add(txtDesc);
         Controls.Add(txtText);
         Controls.Add(label2);
+        Controls.Add(label4);
+        Controls.Add(label3);
         Controls.Add(label1);
         Controls.Add(btnCancel);
-        Controls.Add(btnTextColor);
-        Controls.Add(btnBackground);
         Controls.Add(btnOk);
         Name = "AddFilterDialog";
         Text = "AddFilterDialog";
@@ -175,6 +209,8 @@ partial class AddFilterDialog
     private CheckBox chkExclude;
     private CheckBox chkCase;
     private CheckBox chkRegex;
-    private Button btnBackground;
-    private Button btnTextColor;
+    private ComboBox cboTextColor;
+    private Label label3;
+    private Label label4;
+    private ComboBox cboBackground;
 }
