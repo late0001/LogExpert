@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.Versioning;
@@ -283,7 +284,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
         listView1.ContextMenuStrip = filterLvContextMenuStrip;
         listView1.OwnerDraw = true;
-
+        listView1.Paint += Listview1_Paint;
         ResumeLayout();
     }
 
@@ -5369,7 +5370,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                         listView1.Items.Add(item);
                         _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(newRule));
                     }
-                }          
+                }
 
                 RefreshIDs(); // 刷新所有ID
                 _filterParams.Rules = Rules;
@@ -8359,15 +8360,14 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         listView1.Items.Clear();
         foreach (var r in Rules)
         {
-            var item = new ListViewItem(r.Text)
-            {
-                Tag = r
-            };
+            var item = new ListViewItem(""){ Tag = r };
+            item.SubItems.Add(r.Text);
             item.SubItems.Add(r.Description);
             item.SubItems.Add(r.IsExclude ? "Exclude" : "Include");
             item.SubItems.Add(r.IsRegex ? "Regex" : "Text");
             listView1.Items.Add(item);
         }
+        RefreshIDs();
     }
 
     /// <summary>
@@ -8380,7 +8380,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             listView1.Items[i].Text = (i + 1).ToString();
         }
     }
-    public HighlightEntry Rule2HightlightEntry(FilterRule Rule) 
+    public HighlightEntry Rule2HightlightEntry (FilterRule Rule)
     {
         HighlightEntry entry = new()
         {
@@ -8456,7 +8456,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                 _ = _currentHighlightGroup?.HighlightEntryList?.Remove(Rule2HightlightEntry(rule));
                 RefreshAllGrids();
                 OnCurrentHighlightListChanged();
-            }    
+            }
             RefreshIDs(); // 删除后刷新ID
             _filterParams.Rules = Rules;  // 同步
         }
@@ -8605,4 +8605,108 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     {
         e.DrawDefault = true;
     }
+
+    private ListViewItem? _draggedItem;
+    private int _dragHoverIndex = -1;
+    private int _draggedOriginalIndex = -1; // 加这个！保存原始索引，解决-1问题
+    private void listView1_MouseDown (object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Left)
+        {
+            var item = listView1.GetItemAt(e.X, e.Y);
+            if (item != null)
+            {
+                _draggedItem = item;
+                _draggedOriginalIndex = item.Index;
+                listView1.DoDragDrop(item, DragDropEffects.Move);
+            }
+        }
+    }
+    private void listView1_DragOver (object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(typeof(ListViewItem)))
+        {
+            _dragHoverIndex = -1;
+            return;
+        }
+        
+        e.Effect = DragDropEffects.Move;
+        var pt = listView1.PointToClient(new Point(e.X, e.Y));
+        var hoverItem = listView1.GetItemAt(pt.X, pt.Y);
+        int newIndex = hoverItem == null 
+            ? listView1.Items.Count
+            : (pt.Y < hoverItem.Bounds.Top + hoverItem.Bounds.Height / 2f
+                ? hoverItem.Index
+                : hoverItem.Index + 1);
+
+        // 重绘触发分割线
+        // 🔥 关键：只有位置变了才重画，不一直刷！！！
+        if (newIndex != _dragHoverIndex)
+        {
+            _dragHoverIndex = newIndex;
+            listView1.Invalidate(); // 只在需要时刷新
+        }
+    }
+
+    private void listView1_DragDrop (object sender, DragEventArgs e)
+    {
+        int insertIndex = _dragHoverIndex;
+        int originalIndex = _draggedOriginalIndex;
+        _dragHoverIndex = -1;
+        _draggedOriginalIndex = -1;
+        listView1.Invalidate();
+
+        if (!e.Data.GetDataPresent(typeof(ListViewItem)) )
+            return;
+        if (insertIndex < 0 || originalIndex < 0 || insertIndex == listView1.Items.Count)
+            return;
+        if (insertIndex == originalIndex)
+            return;
+        if (originalIndex >= Rules.Count)
+            return;
+        // 1. UI 排序
+        //listView1.Items.Remove(item);
+        //listView1.Items.Insert(insertIndex, item);
+
+        // 三端同步排序
+        lock (_currentHighlightGroupLock)
+        {   //从 Rules 移除
+            if (_draggedItem?.Tag is FilterRule rule)
+            {
+                Rules.RemoveAt(originalIndex);
+                //插入到新位置
+                Rules.Insert(insertIndex, rule);
+                    //同步 HighlightEntryList 排序
+                    _currentHighlightGroup.HighlightEntryList.Clear();
+                foreach (var r in Rules)
+                {
+                    _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(r));
+                }
+                // 刷新整个列表
+                RefreshList();
+
+                RefreshAllGrids();
+                OnCurrentHighlightListChanged();
+                // 同步过滤器
+                _filterParams.Rules = Rules;
+            }
+        }
+
+    }
+
+    public void Listview1_Paint (object sender, PaintEventArgs e)
+    {
+        if (_dragHoverIndex < 0) return;
+
+        using Pen pen = new Pen(Color.Blue, 2);
+
+        int y = _dragHoverIndex >= listView1.Items.Count?
+        (listView1.Items.Count > 0? listView1.Items[^1].Bounds.Bottom: 0)
+        : listView1.Items[_dragHoverIndex].Bounds.Top;
+        
+
+        e.Graphics.DrawLine(pen, 0, y, listView1.ClientSize.Width, y);
+
+    }
+
 }

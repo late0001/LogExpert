@@ -189,8 +189,8 @@ namespace LogExpert.UI.Controls.LogWindow
             splitContainerLogWindow.Panel2.Controls.Add(advancedBackPanel);
             splitContainerLogWindow.Panel2.Controls.Add(pnlFilterInput);
             splitContainerLogWindow.Panel2MinSize = 50;
-            splitContainerLogWindow.Size = new Size(1540, 964);
-            splitContainerLogWindow.SplitterDistance = 424;
+            splitContainerLogWindow.Size = new Size(1467, 918);
+            splitContainerLogWindow.SplitterDistance = 403;
             splitContainerLogWindow.TabIndex = 9;
             splitContainerLogWindow.SplitterMoved += OnSplitContainerSplitterMoved;
             // 
@@ -211,7 +211,7 @@ namespace LogExpert.UI.Controls.LogWindow
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(1538, 422);
+            tableLayoutPanel1.Size = new Size(1465, 401);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // columnFinderPanel
@@ -275,7 +275,7 @@ namespace LogExpert.UI.Controls.LogWindow
             dataGridView.ShowCellToolTips = false;
             dataGridView.ShowEditingIcon = false;
             dataGridView.ShowRowErrors = false;
-            dataGridView.Size = new Size(847, 391);
+            dataGridView.Size = new Size(847, 370);
             dataGridView.TabIndex = 0;
             dataGridView.VirtualMode = true;
             dataGridView.OverlayDoubleClicked += OnDataGridViewOverlayDoubleClicked;
@@ -429,11 +429,11 @@ namespace LogExpert.UI.Controls.LogWindow
             timeSpreadingControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             timeSpreadingControl.Font = new Font("Verdana", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             timeSpreadingControl.ForeColor = Color.Teal;
-            timeSpreadingControl.Location = new Point(1520, 30);
+            timeSpreadingControl.Location = new Point(1447, 30);
             timeSpreadingControl.Margin = new Padding(2, 0, 1, 0);
             timeSpreadingControl.Name = "timeSpreadingControl";
             timeSpreadingControl.ReverseAlpha = false;
-            timeSpreadingControl.Size = new Size(16, 391);
+            timeSpreadingControl.Size = new Size(16, 370);
             timeSpreadingControl.TabIndex = 1;
             // 
             // advancedBackPanel
@@ -442,7 +442,7 @@ namespace LogExpert.UI.Controls.LogWindow
             advancedBackPanel.Controls.Add(advancedFilterSplitContainer);
             advancedBackPanel.Location = new Point(3, 48);
             advancedBackPanel.Name = "advancedBackPanel";
-            advancedBackPanel.Size = new Size(1533, 483);
+            advancedBackPanel.Size = new Size(1460, 458);
             advancedBackPanel.TabIndex = 3;
             // 
             // advancedFilterSplitContainer
@@ -462,8 +462,8 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             advancedFilterSplitContainer.Panel2.Controls.Add(panelBackgroundAdvancedFilterSplitContainer);
             advancedFilterSplitContainer.Panel2MinSize = 50;
-            advancedFilterSplitContainer.Size = new Size(1533, 483);
-            advancedFilterSplitContainer.SplitterDistance = 238;
+            advancedFilterSplitContainer.Size = new Size(1460, 458);
+            advancedFilterSplitContainer.SplitterDistance = 225;
             advancedFilterSplitContainer.SplitterWidth = 2;
             advancedFilterSplitContainer.TabIndex = 2;
             // 
@@ -487,11 +487,12 @@ namespace LogExpert.UI.Controls.LogWindow
             pnlProFilter.Controls.Add(btnFilterToTab);
             pnlProFilter.Location = new Point(0, 3);
             pnlProFilter.Name = "pnlProFilter";
-            pnlProFilter.Size = new Size(1530, 231);
+            pnlProFilter.Size = new Size(1457, 231);
             pnlProFilter.TabIndex = 0;
             // 
             // listView1
             // 
+            listView1.AllowDrop = true;
             listView1.Columns.AddRange(new ColumnHeader[] { lvColHeader1, lvColHeader2, lvColHeader3 });
             listView1.FullRowSelect = true;
             listView1.Location = new Point(9, 61);
@@ -502,6 +503,9 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.View = View.Details;
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawSubItem += listView1_DrawSubItem;
+            listView1.DragDrop += listView1_DragDrop;
+            listView1.DragOver += listView1_DragOver;
+            listView1.MouseDown += listView1_MouseDown;
             // 
             // lvColHeader1
             // 
@@ -681,13 +685,13 @@ namespace LogExpert.UI.Controls.LogWindow
             panelBackgroundAdvancedFilterSplitContainer.Dock = DockStyle.Fill;
             panelBackgroundAdvancedFilterSplitContainer.Location = new Point(0, 0);
             panelBackgroundAdvancedFilterSplitContainer.Name = "panelBackgroundAdvancedFilterSplitContainer";
-            panelBackgroundAdvancedFilterSplitContainer.Size = new Size(1533, 243);
+            panelBackgroundAdvancedFilterSplitContainer.Size = new Size(1460, 231);
             panelBackgroundAdvancedFilterSplitContainer.TabIndex = 7;
             // 
             // btnToggleHighlightPanel
             // 
             btnToggleHighlightPanel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnToggleHighlightPanel.Location = new Point(1509, 17);
+            btnToggleHighlightPanel.Location = new Point(1436, 17);
             btnToggleHighlightPanel.Name = "btnToggleHighlightPanel";
             btnToggleHighlightPanel.Size = new Size(20, 21);
             btnToggleHighlightPanel.TabIndex = 6;
@@ -713,8 +717,8 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             highlightSplitContainer.Panel2.Controls.Add(highlightSplitContainerBackPanel);
             highlightSplitContainer.Panel2MinSize = 350;
-            highlightSplitContainer.Size = new Size(1504, 232);
-            highlightSplitContainer.SplitterDistance = 1150;
+            highlightSplitContainer.Size = new Size(1431, 220);
+            highlightSplitContainer.SplitterDistance = 1077;
             highlightSplitContainer.TabIndex = 2;
             // 
             // filterGridView
@@ -747,7 +751,7 @@ namespace LogExpert.UI.Controls.LogWindow
             filterGridView.ShowCellToolTips = false;
             filterGridView.ShowEditingIcon = false;
             filterGridView.ShowRowErrors = false;
-            filterGridView.Size = new Size(1148, 230);
+            filterGridView.Size = new Size(1075, 218);
             filterGridView.TabIndex = 1;
             filterGridView.VirtualMode = true;
             filterGridView.CellContextMenuStripNeeded += OnFilterGridViewCellContextMenuStripNeeded;
@@ -799,7 +803,7 @@ namespace LogExpert.UI.Controls.LogWindow
             highlightSplitContainerBackPanel.Dock = DockStyle.Fill;
             highlightSplitContainerBackPanel.Location = new Point(0, 0);
             highlightSplitContainerBackPanel.Name = "highlightSplitContainerBackPanel";
-            highlightSplitContainerBackPanel.Size = new Size(348, 230);
+            highlightSplitContainerBackPanel.Size = new Size(348, 218);
             highlightSplitContainerBackPanel.TabIndex = 1;
             // 
             // hideFilterListOnLoadCheckBox
@@ -882,7 +886,7 @@ namespace LogExpert.UI.Controls.LogWindow
             listBoxFilter.ItemHeight = 25;
             listBoxFilter.Location = new Point(0, 0);
             listBoxFilter.Name = "listBoxFilter";
-            listBoxFilter.Size = new Size(252, 230);
+            listBoxFilter.Size = new Size(252, 218);
             listBoxFilter.TabIndex = 0;
             helpToolTip.SetToolTip(listBoxFilter, "Doubleclick to load a saved filter");
             listBoxFilter.DrawItem += OnFilterListBoxDrawItem;
@@ -908,7 +912,7 @@ namespace LogExpert.UI.Controls.LogWindow
             pnlFilterInput.Controls.Add(filterSplitContainer);
             pnlFilterInput.Location = new Point(3, 2);
             pnlFilterInput.Name = "pnlFilterInput";
-            pnlFilterInput.Size = new Size(1533, 46);
+            pnlFilterInput.Size = new Size(1460, 46);
             pnlFilterInput.TabIndex = 0;
             // 
             // filterSplitContainer
@@ -934,8 +938,8 @@ namespace LogExpert.UI.Controls.LogWindow
             filterSplitContainer.Panel2.Controls.Add(filterCaseSensitiveCheckBox);
             filterSplitContainer.Panel2.Controls.Add(btnfilterSearch);
             filterSplitContainer.Panel2MinSize = 550;
-            filterSplitContainer.Size = new Size(1533, 46);
-            filterSplitContainer.SplitterDistance = 428;
+            filterSplitContainer.Size = new Size(1460, 46);
+            filterSplitContainer.SplitterDistance = 407;
             filterSplitContainer.TabIndex = 11;
             filterSplitContainer.MouseDoubleClick += OnFilterSplitContainerMouseDoubleClick;
             filterSplitContainer.MouseDown += OnFilterSplitContainerMouseDown;
@@ -948,7 +952,7 @@ namespace LogExpert.UI.Controls.LogWindow
             filterComboBox.FormattingEnabled = true;
             filterComboBox.Location = new Point(89, 5);
             filterComboBox.Name = "filterComboBox";
-            filterComboBox.Size = new Size(336, 21);
+            filterComboBox.Size = new Size(315, 21);
             filterComboBox.TabIndex = 4;
             helpToolTip.SetToolTip(filterComboBox, "Search string for the filter");
             filterComboBox.TextChanged += OnFilterComboBoxTextChanged;
@@ -1004,7 +1008,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             lblFilterCount.Anchor = AnchorStyles.Right;
             lblFilterCount.BorderStyle = BorderStyle.Fixed3D;
-            lblFilterCount.Location = new Point(1027, 8);
+            lblFilterCount.Location = new Point(975, 8);
             lblFilterCount.Name = "lblFilterCount";
             lblFilterCount.Size = new Size(71, 21);
             lblFilterCount.TabIndex = 15;
@@ -1227,7 +1231,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             // LogWindow
             // 
-            ClientSize = new Size(1540, 964);
+            ClientSize = new Size(1467, 918);
             ControlBox = false;
             Controls.Add(splitContainerLogWindow);
             Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
