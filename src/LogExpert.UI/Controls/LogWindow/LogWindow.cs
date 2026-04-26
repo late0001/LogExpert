@@ -33,6 +33,7 @@ using Vanara.Extensions;
 using WeifenLuo.WinFormsUI.Docking;
 
 using static Vanara.PInvoke.CldApi;
+using static Vanara.PInvoke.FirewallApi;
 //using static LogExpert.PluginRegistry.PluginRegistry; //TODO: Adjust the instance name so using static can be used.
 
 namespace LogExpert.UI.Controls.LogWindow;
@@ -3454,19 +3455,6 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     private void PaintHighlightedCell (DataGridViewCellPaintingEventArgs e, HighlightEntry groundEntry)
     {
-        Color textColor = Color.Black;
-        Color backColor = Color.Transparent;
-
-        if (e.CellStyle.Tag is FilterRule rule)
-        {
-            textColor = rule.TextColor;
-            backColor = rule.Background;
-        }
-        else
-        {
-            textColor = groundEntry?.ForegroundColor ?? Color.FromKnownColor(KnownColor.Black);
-            backColor = groundEntry?.BackgroundColor ?? Color.Empty;
-        }
 
         var column = e.Value as IColumnMemory;
 
@@ -3482,8 +3470,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         var he = new HighlightEntry
         {
             SearchText = column.DisplayValue.ToString(),
-            ForegroundColor = textColor,
-            BackgroundColor = backColor,
+            ForegroundColor = groundEntry?.ForegroundColor ?? Color.FromKnownColor(KnownColor.Black),
+            BackgroundColor = groundEntry?.BackgroundColor ?? Color.Empty,
             IsWordMatch = true
         };
 
@@ -5350,30 +5338,38 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 var newRule = dlg.Rule;
-
-                if (listView1.SelectedItems.Count > 0)
+                lock (_currentHighlightGroupLock)
                 {
-                    int insertIndex = listView1.SelectedItems[0].Index;
-                    Rules.Insert(insertIndex, newRule);
+                    if (listView1.Items.Count == 0)
+                    {
+                        _currentHighlightGroup.HighlightEntryList.Clear();
+                    }
+                    if (listView1.SelectedItems.Count > 0)
+                    {
+                        int insertIndex = listView1.SelectedItems[0].Index;
+                        Rules.Insert(insertIndex, newRule);
 
-                    var item = new ListViewItem(""); // ID列占位
-                    item.SubItems.Add(newRule.Text);
-                    item.SubItems.Add(newRule.Description);
-                    item.Tag = newRule;
+                        var item = new ListViewItem(""); // ID列占位
+                        item.SubItems.Add(newRule.Text);
+                        item.SubItems.Add(newRule.Description);
+                        item.Tag = newRule;
 
-                    listView1.Items.Insert(insertIndex, item);
-                }
-                else
-                {
-                    Rules.Add(newRule);
+                        listView1.Items.Insert(insertIndex, item);
+                        _currentHighlightGroup.HighlightEntryList.Insert(insertIndex, Rule2HightlightEntry(newRule));
+                    }
+                    else
+                    {
+                        Rules.Add(newRule);
 
-                    var item = new ListViewItem("");
-                    item.SubItems.Add(newRule.Text);
-                    item.SubItems.Add(newRule.Description);
-                    item.Tag = newRule;
+                        var item = new ListViewItem("");
+                        item.SubItems.Add(newRule.Text);
+                        item.SubItems.Add(newRule.Description);
+                        item.Tag = newRule;
 
-                    listView1.Items.Add(item);
-                }
+                        listView1.Items.Add(item);
+                        _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(newRule));
+                    }
+                }          
 
                 RefreshIDs(); // 刷新所有ID
                 _filterParams.Rules = Rules;
@@ -6686,35 +6682,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             }
             else
             {
-                // 整行先铺色 
-                FilterRule matchedRule = null;
-
-                if (columnIndex == 2) // 只对内容列生效
-                {
-                    string lineText = line?.FullLine.ToString() ?? "";
-
-                    foreach (var rule in _filterParams.Rules)
-                    {
-                        if (!rule.IsExclude && IsRuleMatch(lineText, rule))
-                        {
-                            matchedRule = rule;
-                            break;
-                        }
-                    }
-                }
-
-                e.CellStyle.Tag = matchedRule;
-                if (matchedRule != null && matchedRule.Background != Color.Transparent)
-                {
-                    using var br = new SolidBrush(matchedRule.Background);
-                    e.Graphics.FillRectangle(br, e.CellBounds);
-                }
-                else
-                {
-                    e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
-                    e.PaintBackground(e.ClipBounds, false);
-                }
-
+                e.CellStyle.BackColor = PaintHelper.GetBackColorFromHighlightEntry(entry);
+                e.PaintBackground(e.ClipBounds, false);
             }
 
             if (DebugOptions.DisableWordHighlight)
@@ -8411,6 +8380,27 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             listView1.Items[i].Text = (i + 1).ToString();
         }
     }
+    public HighlightEntry Rule2HightlightEntry(FilterRule Rule) 
+    {
+        HighlightEntry entry = new()
+        {
+            SearchText = Rule.Text,
+            ForegroundColor = Rule.TextColor,
+            BackgroundColor = Rule.Background,
+            IsRegex = Rule.IsRegex,
+            IsCaseSensitive = Rule.MatchCase,
+            IsLedSwitch = false,
+            IsStopTail = false,
+            IsSetBookmark = false,
+            IsActionEntry = false,
+            ActionEntry = null,
+            IsWordMatch = false,
+            IsBold = false,
+            NoBackground = false
+        };
+        return entry;
+    }
+
 
     private void addFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
     {
@@ -8422,17 +8412,27 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             item.SubItems.Add(newRule.Text);
             item.SubItems.Add(newRule.Description);
             item.Tag = newRule;
-
-            if (listView1.SelectedItems.Count > 0)
+            lock (_currentHighlightGroupLock)
             {
-                int insertIndex = listView1.SelectedItems[0].Index;
-                Rules.Insert(insertIndex, newRule);
-                listView1.Items.Insert(insertIndex, item);
-            }
-            else
-            {
-                Rules.Add(newRule);
-                listView1.Items.Add(item);
+                if (listView1.Items.Count == 0)
+                {
+                    _currentHighlightGroup.HighlightEntryList.Clear();
+                }
+                if (listView1.SelectedItems.Count > 0)
+                {
+                    int insertIndex = listView1.SelectedItems[0].Index;
+                    Rules.Insert(insertIndex, newRule);
+                    listView1.Items.Insert(insertIndex, item);
+                    _currentHighlightGroup.HighlightEntryList.Insert(insertIndex, Rule2HightlightEntry(newRule));
+                }
+                else
+                {
+                    Rules.Add(newRule);
+                    listView1.Items.Add(item);
+                    _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(newRule));
+                }
+                RefreshAllGrids();
+                OnCurrentHighlightListChanged();
             }
 
             RefreshIDs(); // 刷新所有ID
@@ -8449,8 +8449,14 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         var item = listView1.SelectedItems[0];
         if (item.Tag is FilterRule rule)
         {
-            Rules.Remove(rule);       // 从规则列表删除
+            _ = Rules?.Remove(rule);       // 从规则列表删除
             listView1.Items.Remove(item); // 从界面删除
+            lock (_currentHighlightGroupLock)
+            {
+                _ = _currentHighlightGroup?.HighlightEntryList?.Remove(Rule2HightlightEntry(rule));
+                RefreshAllGrids();
+                OnCurrentHighlightListChanged();
+            }    
             RefreshIDs(); // 删除后刷新ID
             _filterParams.Rules = Rules;  // 同步
         }
@@ -8487,13 +8493,20 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     Rules.AddRange(list.Rules);
 
                     listView1.Items.Clear();
-                    foreach (var rule in Rules)
+                    lock (_currentHighlightGroupLock)
                     {
-                        var item = new ListViewItem("");
-                        item.SubItems.Add(rule.Text);
-                        item.SubItems.Add(rule.Description);
-                        item.Tag = rule;
-                        listView1.Items.Add(item);
+                        _currentHighlightGroup.HighlightEntryList.Clear();
+                        foreach (var rule in Rules)
+                        {
+                            var item = new ListViewItem("");
+                            item.SubItems.Add(rule.Text);
+                            item.SubItems.Add(rule.Description);
+                            item.Tag = rule;
+                            listView1.Items.Add(item);
+                            _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(rule));
+                        }
+                        RemoveTempHighlights();
+                        OnCurrentHighlightListChanged();
                     }
 
                     RefreshIDs();
