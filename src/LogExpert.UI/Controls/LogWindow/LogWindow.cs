@@ -8584,10 +8584,11 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     e.Graphics.FillRectangle(br, e.Bounds);
 
                 // 画文字
+                var font = new Font("Courier New", Preferences.FontSize, FontStyle.Regular);
                 using (Brush br = new SolidBrush(rule.TextColor))
                     e.Graphics.DrawString(
                         e.SubItem.Text,
-                        e.Item.Font,
+                        font,
                         br,
                         e.Bounds.X + 2,
                         e.Bounds.Y + 2);
