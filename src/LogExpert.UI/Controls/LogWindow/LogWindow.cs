@@ -551,6 +551,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         btnfilterSearch.AutoSize = true;
         btnfilterSearch.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
+        btnAddFlt.AutoSize = true;
+        btnAddFlt.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
     }
 
     private void ApplyToolStripMenuItemResources ()
