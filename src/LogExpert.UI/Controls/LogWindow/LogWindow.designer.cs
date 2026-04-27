@@ -136,6 +136,8 @@ namespace LogExpert.UI.Controls.LogWindow
             removeFilterRuleToolStripMenuItem = new ToolStripMenuItem();
             loadFiltersToolStripMenuItem = new ToolStripMenuItem();
             saveFiltersToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            removeAllFilterRuleToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -1199,37 +1201,49 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             // filterLvContextMenuStrip
             // 
-            filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem, loadFiltersToolStripMenuItem, saveFiltersToolStripMenuItem });
+            filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem, removeAllFilterRuleToolStripMenuItem, toolStripSeparator1, loadFiltersToolStripMenuItem, saveFiltersToolStripMenuItem });
             filterLvContextMenuStrip.Name = "filterLvContextMenuStrip";
-            filterLvContextMenuStrip.Size = new Size(156, 92);
+            filterLvContextMenuStrip.Size = new Size(181, 142);
             // 
             // addFilterRuleToolStripMenuItem
             // 
             addFilterRuleToolStripMenuItem.Name = "addFilterRuleToolStripMenuItem";
-            addFilterRuleToolStripMenuItem.Size = new Size(155, 22);
+            addFilterRuleToolStripMenuItem.Size = new Size(180, 22);
             addFilterRuleToolStripMenuItem.Text = "Add Filter";
             addFilterRuleToolStripMenuItem.Click += addFilterRuleToolStripMenuItem_Click;
             // 
             // removeFilterRuleToolStripMenuItem
             // 
             removeFilterRuleToolStripMenuItem.Name = "removeFilterRuleToolStripMenuItem";
-            removeFilterRuleToolStripMenuItem.Size = new Size(155, 22);
+            removeFilterRuleToolStripMenuItem.Size = new Size(180, 22);
             removeFilterRuleToolStripMenuItem.Text = "Remove Filter";
             removeFilterRuleToolStripMenuItem.Click += removeFilterRuleToolStripMenuItem_Click;
             // 
             // loadFiltersToolStripMenuItem
             // 
             loadFiltersToolStripMenuItem.Name = "loadFiltersToolStripMenuItem";
-            loadFiltersToolStripMenuItem.Size = new Size(155, 22);
+            loadFiltersToolStripMenuItem.Size = new Size(180, 22);
             loadFiltersToolStripMenuItem.Text = "Load";
             loadFiltersToolStripMenuItem.Click += loadFiltersToolStripMenuItem_Click;
             // 
             // saveFiltersToolStripMenuItem
             // 
             saveFiltersToolStripMenuItem.Name = "saveFiltersToolStripMenuItem";
-            saveFiltersToolStripMenuItem.Size = new Size(155, 22);
+            saveFiltersToolStripMenuItem.Size = new Size(180, 22);
             saveFiltersToolStripMenuItem.Text = "Save";
             saveFiltersToolStripMenuItem.Click += saveFiltersToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(177, 6);
+            // 
+            // removeAllFilterRuleToolStripMenuItem
+            // 
+            removeAllFilterRuleToolStripMenuItem.Name = "removeAllFilterRuleToolStripMenuItem";
+            removeAllFilterRuleToolStripMenuItem.Size = new Size(180, 22);
+            removeAllFilterRuleToolStripMenuItem.Text = "Remove All";
+            removeAllFilterRuleToolStripMenuItem.Click += removeAllFilterRuleToolStripMenuItem_Click;
             // 
             // LogWindow
             // 
@@ -1392,5 +1406,7 @@ namespace LogExpert.UI.Controls.LogWindow
         private ColumnHeader lvColHeader3;
         private ToolStripMenuItem saveFiltersToolStripMenuItem;
         private ToolStripMenuItem loadFiltersToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem removeAllFilterRuleToolStripMenuItem;
     }
 }

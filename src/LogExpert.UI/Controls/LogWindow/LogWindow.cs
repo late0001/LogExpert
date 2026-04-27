@@ -2237,7 +2237,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     private void OnParentHighlightSettingsChanged (object sender, EventArgs e)
     {
         Debug.WriteLine($"[LogWindow::OnParentHighlightSettingsChanged] var groupName = _guiStateArgs.HighlightGroupName;// var groupName={_guiStateArgs.HighlightGroupName}");
-		Debug.WriteLine($"[LogWindow::OnParentHighlightSettingsChanged] SetCurrentHighlightGroup(groupName);");
+        Debug.WriteLine($"[LogWindow::OnParentHighlightSettingsChanged] SetCurrentHighlightGroup(groupName);");
         var groupName = _guiStateArgs.HighlightGroupName;
         SetCurrentHighlightGroup(groupName);
     }
@@ -8462,6 +8462,13 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             SyncHighlightList();
         }
     }
+
+    private void removeAllFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
+    {
+        Rules.Clear();
+        RefreshList();
+    }
+
     private void SaveFilterRules (string filePath)
     {
         try
@@ -8494,7 +8501,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     Rules.AddRange(list.Rules);
                     RefreshList();
                     SyncHighlightList();
-                    
+
                 }
             }
         }
