@@ -134,10 +134,10 @@ namespace LogExpert.UI.Controls.LogWindow
             filterLvContextMenuStrip = new ContextMenuStrip(components);
             addFilterRuleToolStripMenuItem = new ToolStripMenuItem();
             removeFilterRuleToolStripMenuItem = new ToolStripMenuItem();
+            removeAllFilterRuleToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
             loadFiltersToolStripMenuItem = new ToolStripMenuItem();
             saveFiltersToolStripMenuItem = new ToolStripMenuItem();
-            toolStripSeparator1 = new ToolStripSeparator();
-            removeAllFilterRuleToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -497,9 +497,9 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.AllowDrop = true;
             listView1.Columns.AddRange(new ColumnHeader[] { lvColHeader1, lvColHeader2, lvColHeader3 });
             listView1.FullRowSelect = true;
-            listView1.Location = new Point(9, 61);
+            listView1.Location = new Point(9, 10);
             listView1.Name = "listView1";
-            listView1.Size = new Size(723, 167);
+            listView1.Size = new Size(723, 208);
             listView1.TabIndex = 16;
             listView1.UseCompatibleStateImageBehavior = false;
             listView1.View = View.Details;
@@ -528,7 +528,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // btnColumn
             // 
             btnColumn.Enabled = false;
-            btnColumn.Location = new Point(750, 41);
+            btnColumn.Location = new Point(1249, 49);
             btnColumn.Name = "btnColumn";
             btnColumn.Size = new Size(85, 35);
             btnColumn.TabIndex = 15;
@@ -540,7 +540,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // columnRestrictCheckBox
             // 
             columnRestrictCheckBox.AutoSize = true;
-            columnRestrictCheckBox.Location = new Point(594, 38);
+            columnRestrictCheckBox.Location = new Point(1111, 52);
             columnRestrictCheckBox.Name = "columnRestrictCheckBox";
             columnRestrictCheckBox.Size = new Size(95, 17);
             columnRestrictCheckBox.TabIndex = 14;
@@ -552,7 +552,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // rangeCheckBox
             // 
             rangeCheckBox.AutoSize = true;
-            rangeCheckBox.Location = new Point(73, 38);
+            rangeCheckBox.Location = new Point(825, 40);
             rangeCheckBox.Name = "rangeCheckBox";
             rangeCheckBox.Size = new Size(93, 17);
             rangeCheckBox.TabIndex = 13;
@@ -565,7 +565,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             filterRangeComboBox.Enabled = false;
             filterRangeComboBox.FormattingEnabled = true;
-            filterRangeComboBox.Location = new Point(73, 11);
+            filterRangeComboBox.Location = new Point(825, 13);
             filterRangeComboBox.Name = "filterRangeComboBox";
             filterRangeComboBox.Size = new Size(207, 21);
             filterRangeComboBox.TabIndex = 12;
@@ -575,7 +575,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // columnNamesLabel
             // 
             columnNamesLabel.AutoSize = true;
-            columnNamesLabel.Location = new Point(841, 41);
+            columnNamesLabel.Location = new Point(1340, 49);
             columnNamesLabel.Name = "columnNamesLabel";
             columnNamesLabel.Size = new Size(75, 13);
             columnNamesLabel.TabIndex = 11;
@@ -584,7 +584,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // lblfuzzy
             // 
             lblfuzzy.AutoSize = true;
-            lblfuzzy.Location = new Point(502, 38);
+            lblfuzzy.Location = new Point(977, 134);
             lblfuzzy.Name = "lblfuzzy";
             lblfuzzy.Size = new Size(56, 13);
             lblfuzzy.TabIndex = 11;
@@ -594,7 +594,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             knobControlFuzzy.DragSensitivity = 6;
             knobControlFuzzy.Font = new Font("Verdana", 6F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            knobControlFuzzy.Location = new Point(521, 7);
+            knobControlFuzzy.Location = new Point(996, 103);
             knobControlFuzzy.Margin = new Padding(2);
             knobControlFuzzy.MaxValue = 0;
             knobControlFuzzy.MinValue = 0;
@@ -608,7 +608,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // invertFilterCheckBox
             // 
             invertFilterCheckBox.AutoSize = true;
-            invertFilterCheckBox.Location = new Point(594, 7);
+            invertFilterCheckBox.Location = new Point(1111, 21);
             invertFilterCheckBox.Name = "invertFilterCheckBox";
             invertFilterCheckBox.Size = new Size(86, 17);
             invertFilterCheckBox.TabIndex = 8;
@@ -620,7 +620,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // pnlProFilterLabel
             // 
             pnlProFilterLabel.BackgroundImageLayout = ImageLayout.Center;
-            pnlProFilterLabel.Location = new Point(5, 7);
+            pnlProFilterLabel.Location = new Point(757, 9);
             pnlProFilterLabel.Name = "pnlProFilterLabel";
             pnlProFilterLabel.Size = new Size(60, 44);
             pnlProFilterLabel.TabIndex = 7;
@@ -628,7 +628,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // lblBackSpread
             // 
             lblBackSpread.AutoSize = true;
-            lblBackSpread.Location = new Point(287, 38);
+            lblBackSpread.Location = new Point(762, 134);
             lblBackSpread.Name = "lblBackSpread";
             lblBackSpread.Size = new Size(72, 13);
             lblBackSpread.TabIndex = 6;
@@ -638,7 +638,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             knobControlFilterBackSpread.DragSensitivity = 3;
             knobControlFilterBackSpread.Font = new Font("Verdana", 6F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            knobControlFilterBackSpread.Location = new Point(313, 7);
+            knobControlFilterBackSpread.Location = new Point(788, 103);
             knobControlFilterBackSpread.Margin = new Padding(2);
             knobControlFilterBackSpread.MaxValue = 0;
             knobControlFilterBackSpread.MinValue = 0;
@@ -651,7 +651,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // lblForeSpread
             // 
             lblForeSpread.AutoSize = true;
-            lblForeSpread.Location = new Point(397, 38);
+            lblForeSpread.Location = new Point(872, 134);
             lblForeSpread.Name = "lblForeSpread";
             lblForeSpread.Size = new Size(65, 13);
             lblForeSpread.TabIndex = 2;
@@ -661,7 +661,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             knobControlFilterForeSpread.DragSensitivity = 3;
             knobControlFilterForeSpread.Font = new Font("Verdana", 6F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            knobControlFilterForeSpread.Location = new Point(420, 7);
+            knobControlFilterForeSpread.Location = new Point(895, 103);
             knobControlFilterForeSpread.Margin = new Padding(2);
             knobControlFilterForeSpread.MaxValue = 0;
             knobControlFilterForeSpread.MinValue = 0;
@@ -673,7 +673,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             // btnFilterToTab
             // 
-            btnFilterToTab.Location = new Point(750, 3);
+            btnFilterToTab.Location = new Point(1249, 11);
             btnFilterToTab.Name = "btnFilterToTab";
             btnFilterToTab.Size = new Size(85, 35);
             btnFilterToTab.TabIndex = 0;
@@ -975,9 +975,9 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             btnAddFlt.DialogResult = DialogResult.Cancel;
             btnAddFlt.ImageAlign = ContentAlignment.MiddleRight;
-            btnAddFlt.Location = new Point(676, 5);
+            btnAddFlt.Location = new Point(653, 5);
             btnAddFlt.Name = "btnAddFlt";
-            btnAddFlt.Size = new Size(110, 35);
+            btnAddFlt.Size = new Size(80, 21);
             btnAddFlt.TabIndex = 17;
             btnAddFlt.Text = "Add Filter";
             btnAddFlt.UseVisualStyleBackColor = true;
@@ -989,7 +989,7 @@ namespace LogExpert.UI.Controls.LogWindow
             btnAdvanced.ImageAlign = ContentAlignment.MiddleRight;
             btnAdvanced.Location = new Point(539, 5);
             btnAdvanced.Name = "btnAdvanced";
-            btnAdvanced.Size = new Size(110, 35);
+            btnAdvanced.Size = new Size(83, 21);
             btnAdvanced.TabIndex = 17;
             btnAdvanced.Text = "Show advanced...";
             helpToolTip.SetToolTip(btnAdvanced, "Toggel the advanced filter options panel");
@@ -1012,7 +1012,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             lblFilterCount.Anchor = AnchorStyles.Right;
             lblFilterCount.BorderStyle = BorderStyle.Fixed3D;
-            lblFilterCount.Location = new Point(975, 8);
+            lblFilterCount.Location = new Point(969, 4);
             lblFilterCount.Name = "lblFilterCount";
             lblFilterCount.Size = new Size(71, 21);
             lblFilterCount.TabIndex = 15;
@@ -1060,7 +1060,7 @@ namespace LogExpert.UI.Controls.LogWindow
             btnfilterSearch.ImageAlign = ContentAlignment.MiddleRight;
             btnfilterSearch.Location = new Point(3, 5);
             btnfilterSearch.Name = "btnfilterSearch";
-            btnfilterSearch.Size = new Size(128, 35);
+            btnfilterSearch.Size = new Size(109, 21);
             btnfilterSearch.TabIndex = 11;
             btnfilterSearch.Text = "Search";
             helpToolTip.SetToolTip(btnfilterSearch, "Start the filter search");
@@ -1203,47 +1203,47 @@ namespace LogExpert.UI.Controls.LogWindow
             // 
             filterLvContextMenuStrip.Items.AddRange(new ToolStripItem[] { addFilterRuleToolStripMenuItem, removeFilterRuleToolStripMenuItem, removeAllFilterRuleToolStripMenuItem, toolStripSeparator1, loadFiltersToolStripMenuItem, saveFiltersToolStripMenuItem });
             filterLvContextMenuStrip.Name = "filterLvContextMenuStrip";
-            filterLvContextMenuStrip.Size = new Size(181, 142);
+            filterLvContextMenuStrip.Size = new Size(156, 120);
             // 
             // addFilterRuleToolStripMenuItem
             // 
             addFilterRuleToolStripMenuItem.Name = "addFilterRuleToolStripMenuItem";
-            addFilterRuleToolStripMenuItem.Size = new Size(180, 22);
+            addFilterRuleToolStripMenuItem.Size = new Size(155, 22);
             addFilterRuleToolStripMenuItem.Text = "Add Filter";
             addFilterRuleToolStripMenuItem.Click += addFilterRuleToolStripMenuItem_Click;
             // 
             // removeFilterRuleToolStripMenuItem
             // 
             removeFilterRuleToolStripMenuItem.Name = "removeFilterRuleToolStripMenuItem";
-            removeFilterRuleToolStripMenuItem.Size = new Size(180, 22);
+            removeFilterRuleToolStripMenuItem.Size = new Size(155, 22);
             removeFilterRuleToolStripMenuItem.Text = "Remove Filter";
             removeFilterRuleToolStripMenuItem.Click += removeFilterRuleToolStripMenuItem_Click;
+            // 
+            // removeAllFilterRuleToolStripMenuItem
+            // 
+            removeAllFilterRuleToolStripMenuItem.Name = "removeAllFilterRuleToolStripMenuItem";
+            removeAllFilterRuleToolStripMenuItem.Size = new Size(155, 22);
+            removeAllFilterRuleToolStripMenuItem.Text = "Remove All";
+            removeAllFilterRuleToolStripMenuItem.Click += removeAllFilterRuleToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(152, 6);
             // 
             // loadFiltersToolStripMenuItem
             // 
             loadFiltersToolStripMenuItem.Name = "loadFiltersToolStripMenuItem";
-            loadFiltersToolStripMenuItem.Size = new Size(180, 22);
+            loadFiltersToolStripMenuItem.Size = new Size(155, 22);
             loadFiltersToolStripMenuItem.Text = "Load";
             loadFiltersToolStripMenuItem.Click += loadFiltersToolStripMenuItem_Click;
             // 
             // saveFiltersToolStripMenuItem
             // 
             saveFiltersToolStripMenuItem.Name = "saveFiltersToolStripMenuItem";
-            saveFiltersToolStripMenuItem.Size = new Size(180, 22);
+            saveFiltersToolStripMenuItem.Size = new Size(155, 22);
             saveFiltersToolStripMenuItem.Text = "Save";
             saveFiltersToolStripMenuItem.Click += saveFiltersToolStripMenuItem_Click;
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(177, 6);
-            // 
-            // removeAllFilterRuleToolStripMenuItem
-            // 
-            removeAllFilterRuleToolStripMenuItem.Name = "removeAllFilterRuleToolStripMenuItem";
-            removeAllFilterRuleToolStripMenuItem.Size = new Size(180, 22);
-            removeAllFilterRuleToolStripMenuItem.Text = "Remove All";
-            removeAllFilterRuleToolStripMenuItem.Click += removeAllFilterRuleToolStripMenuItem_Click;
             // 
             // LogWindow
             // 
