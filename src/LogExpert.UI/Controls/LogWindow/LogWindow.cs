@@ -8383,7 +8383,6 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
                 Debug.WriteLine($"[SyncHighlightList] 写入全局组成功 Count = {newEntries.Count}");
 
-                RefreshAllGrids();
             }
 
             _filterParams.Rules = Rules;
