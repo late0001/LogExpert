@@ -8353,8 +8353,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (dlg.ShowDialog() == DialogResult.OK)
         {
             Rules.Add(dlg.Rule);
-            _filterParams.Rules = Rules;
             RefreshList();
+            SyncHighlightList();
         }
     }
     void RefreshList ()
@@ -8423,60 +8423,32 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     private void addFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
     {
         var dlg = new AddFilterDialog();
-        if (dlg.ShowDialog() == DialogResult.OK)
-        {
-            var newRule = dlg.Rule;
-            var item = new ListViewItem(""); // ID列占位
-            item.SubItems.Add(newRule.Text);
-            item.SubItems.Add(newRule.Description);
-            item.Tag = newRule;
-            lock (_currentHighlightGroupLock)
-            {
-                if (listView1.Items.Count == 0)
-                {
-                    _currentHighlightGroup.HighlightEntryList.Clear();
-                }
-                if (listView1.SelectedItems.Count > 0)
-                {
-                    int insertIndex = listView1.SelectedItems[0].Index;
-                    Rules.Insert(insertIndex, newRule);
-                    listView1.Items.Insert(insertIndex, item);
-                    _currentHighlightGroup.HighlightEntryList.Insert(insertIndex, Rule2HightlightEntry(newRule));
-                }
-                else
-                {
-                    Rules.Add(newRule);
-                    listView1.Items.Add(item);
-                    _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(newRule));
-                }
-                RefreshAllGrids();
-                OnCurrentHighlightListChanged();
-            }
+        if (dlg.ShowDialog() != DialogResult.OK) return;
 
-            RefreshIDs(); // 刷新所有ID
-            _filterParams.Rules = Rules;
+        var newRule = dlg.Rule;
+        if (listView1.SelectedItems.Count > 0)
+        {
+            int idx = listView1.SelectedItems[0].Index;
+            Rules.Insert(idx, newRule);
         }
+        else
+        {
+            Rules.Add(newRule);
+        }
+
+        RefreshList();
+        SyncHighlightList();
     }
 
     private void removeFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
     {
         // 没有选中项 → 直接退出
-        if (listView1.SelectedItems.Count == 0)
-            return;
-
-        var item = listView1.SelectedItems[0];
-        if (item.Tag is FilterRule rule)
+        if (listView1.SelectedItems.Count == 0) return;
+        if (listView1.SelectedItems[0].Tag is FilterRule rule)
         {
-            _ = Rules?.Remove(rule);       // 从规则列表删除
-            listView1.Items.Remove(item); // 从界面删除
-            lock (_currentHighlightGroupLock)
-            {
-                _ = _currentHighlightGroup?.HighlightEntryList?.Remove(Rule2HightlightEntry(rule));
-                RefreshAllGrids();
-                OnCurrentHighlightListChanged();
-            }
-            RefreshIDs(); // 删除后刷新ID
-            _filterParams.Rules = Rules;  // 同步
+            Rules.Remove(rule);
+            RefreshList();
+            SyncHighlightList();
         }
     }
     private void SaveFilterRules (string filePath)
