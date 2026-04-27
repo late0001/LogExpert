@@ -505,7 +505,9 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.DrawSubItem += listView1_DrawSubItem;
             listView1.DragDrop += listView1_DragDrop;
             listView1.DragOver += listView1_DragOver;
+            listView1.MouseDoubleClick += listView1_MouseDoubleClick;
             listView1.MouseDown += listView1_MouseDown;
+            listView1.MouseMove += listView1_MouseMove;
             // 
             // lvColHeader1
             // 

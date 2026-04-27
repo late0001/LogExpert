@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel;
+using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8360,7 +8362,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         listView1.Items.Clear();
         foreach (var r in Rules)
         {
-            var item = new ListViewItem(""){ Tag = r };
+            var item = new ListViewItem("") { Tag = r };
             item.SubItems.Add(r.Text);
             item.SubItems.Add(r.Description);
             item.SubItems.Add(r.IsExclude ? "Exclude" : "Include");
@@ -8368,6 +8370,22 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             listView1.Items.Add(item);
         }
         RefreshIDs();
+    }
+
+    // 全局同步高亮列表
+    private void SyncHighlightList ()
+    {
+        lock (_currentHighlightGroupLock)
+        {
+            _currentHighlightGroup.HighlightEntryList.Clear();
+            foreach (var r in Rules)
+            {
+                _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(r));
+            }
+            RefreshAllGrids();
+            OnCurrentHighlightListChanged();
+        }
+        _filterParams.Rules = Rules;
     }
 
     /// <summary>
@@ -8609,19 +8627,34 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     private ListViewItem? _draggedItem;
     private int _dragHoverIndex = -1;
     private int _draggedOriginalIndex = -1; // 加这个！保存原始索引，解决-1问题
+    private Point _mouseDownPoint; // 🔥 加这个：记录鼠标按下坐标
     private void listView1_MouseDown (object sender, MouseEventArgs e)
     {
         if (e.Button == MouseButtons.Left)
         {
+            _mouseDownPoint = e.Location;
             var item = listView1.GetItemAt(e.X, e.Y);
             if (item != null)
             {
                 _draggedItem = item;
                 _draggedOriginalIndex = item.Index;
-                listView1.DoDragDrop(item, DragDropEffects.Move);
+
             }
         }
     }
+    private void listView1_MouseMove (object sender, MouseEventArgs e)
+    {
+        // 只有按住左键 + 有选中项 + 移动超过系统拖动最小距离 → 才启动拖动
+        if (e.Button == MouseButtons.Left &&
+            _draggedItem != null &&
+            Math.Abs(e.X - _mouseDownPoint.X) >= SystemInformation.DragSize.Width &&
+            Math.Abs(e.Y - _mouseDownPoint.Y) >= SystemInformation.DragSize.Height)
+        {
+            // 这里才启动拖动
+            listView1.DoDragDrop(_draggedItem, DragDropEffects.Move);
+        }
+    }
+
     private void listView1_DragOver (object sender, DragEventArgs e)
     {
         if (!e.Data.GetDataPresent(typeof(ListViewItem)))
@@ -8629,11 +8662,11 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             _dragHoverIndex = -1;
             return;
         }
-        
+
         e.Effect = DragDropEffects.Move;
         var pt = listView1.PointToClient(new Point(e.X, e.Y));
         var hoverItem = listView1.GetItemAt(pt.X, pt.Y);
-        int newIndex = hoverItem == null 
+        int newIndex = hoverItem == null
             ? listView1.Items.Count
             : (pt.Y < hoverItem.Bounds.Top + hoverItem.Bounds.Height / 2f
                 ? hoverItem.Index
@@ -8656,7 +8689,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         _draggedOriginalIndex = -1;
         listView1.Invalidate();
 
-        if (!e.Data.GetDataPresent(typeof(ListViewItem)) )
+        if (!e.Data.GetDataPresent(typeof(ListViewItem)))
             return;
         if (insertIndex < 0 || originalIndex < 0 || insertIndex == listView1.Items.Count)
             return;
@@ -8664,33 +8697,14 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             return;
         if (originalIndex >= Rules.Count)
             return;
-        // 1. UI 排序
-        //listView1.Items.Remove(item);
-        //listView1.Items.Insert(insertIndex, item);
 
-        // 三端同步排序
-        lock (_currentHighlightGroupLock)
-        {   //从 Rules 移除
-            if (_draggedItem?.Tag is FilterRule rule)
-            {
-                Rules.RemoveAt(originalIndex);
-                //插入到新位置
-                Rules.Insert(insertIndex, rule);
-                    //同步 HighlightEntryList 排序
-                    _currentHighlightGroup.HighlightEntryList.Clear();
-                foreach (var r in Rules)
-                {
-                    _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(r));
-                }
-                // 刷新整个列表
-                RefreshList();
-
-                RefreshAllGrids();
-                OnCurrentHighlightListChanged();
-                // 同步过滤器
-                _filterParams.Rules = Rules;
-            }
-        }
+        var rule = Rules[originalIndex];
+        Rules.RemoveAt(originalIndex);
+        //插入到新位置
+        Rules.Insert(insertIndex, rule);
+        // 刷新整个列表
+        RefreshList();
+        SyncHighlightList();
 
     }
 
@@ -8699,14 +8713,45 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (_dragHoverIndex < 0) return;
 
         using Pen pen = new Pen(Color.Blue, 2);
+        int y;
 
-        int y = _dragHoverIndex >= listView1.Items.Count?
-        (listView1.Items.Count > 0? listView1.Items[^1].Bounds.Bottom: 0)
-        : listView1.Items[_dragHoverIndex].Bounds.Top;
-        
+        if (_dragHoverIndex >= listView1.Items.Count)
+        {
+            y = listView1.Items.Count > 0 ? listView1.Items[^1].Bounds.Bottom : 0;
+        }
+        else
+        {
+            y = listView1.Items[_dragHoverIndex].Bounds.Top;
+        }
 
-        e.Graphics.DrawLine(pen, 0, y, listView1.ClientSize.Width, y);
+        e.Graphics.DrawLine(pen, listView1.ClientRectangle.Left, y, listView1.ClientRectangle.Right, y);
 
+    }
+
+    private void listView1_MouseDoubleClick (object sender, MouseEventArgs e)
+    {
+        ListViewItem item = listView1.GetItemAt(e.X, e.Y);
+
+        if (item == null)
+            return;
+        // 👇 直接拿 Tag，强转成 FilterRule
+        if (item.Tag is FilterRule rule)
+        {
+            // 打开修改窗口
+            var dlg = new AddFilterDialog(rule);
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                int idx = Rules.IndexOf(rule);
+                if (idx >= 0)
+                {
+                    Rules[idx] = dlg.Rule;
+                }
+                // 修改完 → 刷新 UI
+                RefreshList();
+                SyncHighlightList();
+            }
+        }
     }
 
 }

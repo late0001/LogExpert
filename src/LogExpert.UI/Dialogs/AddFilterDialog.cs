@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -38,6 +39,53 @@ public partial class AddFilterDialog : Form
         chkExclude.Checked = rule.IsExclude;
         chkCase.Checked = rule.MatchCase;
         chkRegex.Checked = rule.IsRegex;
+        int iFindIndex = -1;
+        if (rule.TextColor == Color.Black)
+        {
+            iFindIndex = 0;
+        }
+        else
+        {
+            for (int fgIndex = 1; fgIndex < cboTextColor.Items.Count - 1; fgIndex++)
+            {
+
+                if (rule.TextColor == ((Color)cboTextColor.Items[fgIndex]))
+                {
+                    iFindIndex = fgIndex;
+                    break;
+                }
+            }
+        }
+           
+        if (iFindIndex > -1)
+            cboTextColor.SelectedIndex = iFindIndex;
+        else
+            cboTextColor.SelectedIndex = cboTextColor.Items.Count - 1;
+
+        iFindIndex = -1;
+        if (rule.Background == Color.White)
+        {
+            iFindIndex = 0;
+        }
+        else
+        {
+            for (int bgIndex = 1; bgIndex < cboBackground.Items.Count - 1; bgIndex++)
+            {
+                if (rule.Background == ((Color)cboBackground.Items[bgIndex]))
+                {
+                    iFindIndex = bgIndex;
+                    break;
+                }
+            }
+        }
+            
+        if(iFindIndex > -1) 
+            cboBackground.SelectedIndex = iFindIndex;
+        else 
+            cboBackground.SelectedIndex = cboBackground.Items.Count-1;
+
+        txtText.ForeColor = rule.TextColor;
+        txtText.BackColor = rule.Background;
     }
 
     private void btnOk_Click (object sender, EventArgs e)
