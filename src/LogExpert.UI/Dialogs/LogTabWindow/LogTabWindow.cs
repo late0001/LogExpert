@@ -1846,6 +1846,7 @@ internal partial class LogTabWindow : Form, ILogTabWindow
 
     private void OnHighlightSettingsChanged ()
     {
+        Debug.WriteLine($"[LogTabWindow::OnHighlightSettingsChanged]");
         _logWindowCoordinator.OnHighlightSettingsChanged();
     }
 
@@ -2251,6 +2252,7 @@ internal partial class LogTabWindow : Form, ILogTabWindow
 
     private void OnLogWindowCurrentHighlightGroupChanged (object sender, CurrentHighlightGroupChangedEventArgs e)
     {
+        Debug.WriteLine($"[OnLogWindowCurrentHighlightGroupChanged] discard e");
         OnHighlightSettingsChanged();
         ConfigManager.Settings.Preferences.HighlightGroupList = HighlightGroupList;
         ConfigManager.Save(SettingsFlags.HighlightSettings);

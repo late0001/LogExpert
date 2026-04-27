@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -807,6 +808,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     protected void OnCurrentHighlightListChanged ()
     {
+        Debug.WriteLine($"[OnCurrentHighlightListChanged] CurrentHighlightGroupChanged?.Invoke(this, new CurrentHighlightGroupChangedEventArgs(this, _currentHighlightGroup)");
         CurrentHighlightGroupChanged?.Invoke(this, new CurrentHighlightGroupChangedEventArgs(this, _currentHighlightGroup));
     }
 
@@ -2234,6 +2236,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     private void OnParentHighlightSettingsChanged (object sender, EventArgs e)
     {
+        Debug.WriteLine($"[LogWindow::OnParentHighlightSettingsChanged] var groupName = _guiStateArgs.HighlightGroupName;// var groupName={_guiStateArgs.HighlightGroupName}");
+		Debug.WriteLine($"[LogWindow::OnParentHighlightSettingsChanged] SetCurrentHighlightGroup(groupName);");
         var groupName = _guiStateArgs.HighlightGroupName;
         SetCurrentHighlightGroup(groupName);
     }
@@ -5340,42 +5344,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             var dlg = new AddFilterDialog(text.ToString());
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                var newRule = dlg.Rule;
-                lock (_currentHighlightGroupLock)
-                {
-                    if (listView1.Items.Count == 0)
-                    {
-                        _currentHighlightGroup.HighlightEntryList.Clear();
-                    }
-                    if (listView1.SelectedItems.Count > 0)
-                    {
-                        int insertIndex = listView1.SelectedItems[0].Index;
-                        Rules.Insert(insertIndex, newRule);
-
-                        var item = new ListViewItem(""); // ID列占位
-                        item.SubItems.Add(newRule.Text);
-                        item.SubItems.Add(newRule.Description);
-                        item.Tag = newRule;
-
-                        listView1.Items.Insert(insertIndex, item);
-                        _currentHighlightGroup.HighlightEntryList.Insert(insertIndex, Rule2HightlightEntry(newRule));
-                    }
-                    else
-                    {
-                        Rules.Add(newRule);
-
-                        var item = new ListViewItem("");
-                        item.SubItems.Add(newRule.Text);
-                        item.SubItems.Add(newRule.Description);
-                        item.Tag = newRule;
-
-                        listView1.Items.Add(item);
-                        _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(newRule));
-                    }
-                }
-
-                RefreshIDs(); // 刷新所有ID
-                _filterParams.Rules = Rules;
+                Rules.Add(dlg.Rule);
+                RefreshList();
+                SyncHighlightList();
             }
         }
     }
@@ -6743,6 +6714,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     /// <returns></returns>
     public HighlightEntry FindHighlightEntry (ITextValueMemory line, bool noWordMatches)
     {
+
         // first check the temp entries
         lock (_tempHighlightEntryListLock)
         {
@@ -8252,15 +8224,15 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     public void SetCurrentHighlightGroup (string groupName)
     {
         _guiStateArgs.HighlightGroupName = groupName;
-
+        Debug.WriteLine($"[SetCurrentHighlightGroup] _guiStateArgs.HighlightGroupName = {groupName}");
         lock (_currentHighlightGroupLock)
         {
             _currentHighlightGroup = _logWindowCoordinator.ResolveHighlightGroup(groupName, null);
             _guiStateArgs.HighlightGroupName = _currentHighlightGroup.GroupName;
         }
-
+        Debug.WriteLine($"[SetCurrentHighlightGroup] _currentHighlightGroup.HighlightEntryList.Count = {_currentHighlightGroup.HighlightEntryList.Count}");
         SendGuiStateUpdate();
-
+        Debug.WriteLine($"[SetCurrentHighlightGroup] IsHandleCreated = {IsHandleCreated}");
         if (IsHandleCreated)
         {
             //NOTE: Possible double refresh of AllGrids, maybe not necessary if only will be called once
@@ -8372,20 +8344,60 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         RefreshIDs();
     }
 
-    // 全局同步高亮列表
+
+    // 组名固定
+    private const string CustomHighlightGroupName = "CustomFilterRuleGroup";
+
     private void SyncHighlightList ()
     {
-        lock (_currentHighlightGroupLock)
+        try
         {
-            _currentHighlightGroup.HighlightEntryList.Clear();
-            foreach (var r in Rules)
+            // 1. 构建你的高亮条目
+            var newEntries = Rules.Select(r => Rule2HightlightEntry(r)).ToList();
+
+            lock (_currentHighlightGroupLock)
             {
-                _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(r));
+
+                HighlightGroup? customGroup = null;
+
+                // 从全局设置里找（原作者唯一存放组的地方）
+                var allGroups = ConfigManager.Settings.Preferences.HighlightGroupList;
+
+                // 先删掉旧的自定义组
+                allGroups.RemoveAll(g => g.GroupName == CustomHighlightGroupName);
+
+                // 创建新组
+                customGroup = new HighlightGroup
+                {
+                    GroupName = CustomHighlightGroupName,
+                    HighlightEntryList = newEntries
+                };
+
+                // 加入全局设置！！！（必须做！！！）
+                allGroups.Add(customGroup);
+
+                // 直接赋值给当前组（不让系统替你找）
+                _currentHighlightGroup = customGroup;
+                // 告诉系统当前组名
+                _guiStateArgs.HighlightGroupName = CustomHighlightGroupName;
+
+                Debug.WriteLine($"[SyncHighlightList] 写入全局组成功 Count = {newEntries.Count}");
+
+                RefreshAllGrids();
             }
-            RefreshAllGrids();
+
+            _filterParams.Rules = Rules;
+
+            // 通知刷新
             OnCurrentHighlightListChanged();
         }
-        _filterParams.Rules = Rules;
+        finally
+        {
+            lock (_currentHighlightGroupLock)
+            {
+                Debug.WriteLine($"[SyncHighlightList][FINAL] Count = {_currentHighlightGroup.HighlightEntryList.Count}");
+            }
+        }
     }
 
     /// <summary>
@@ -8481,26 +8493,9 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                 {
                     Rules.Clear();
                     Rules.AddRange(list.Rules);
-
-                    listView1.Items.Clear();
-                    lock (_currentHighlightGroupLock)
-                    {
-                        _currentHighlightGroup.HighlightEntryList.Clear();
-                        foreach (var rule in Rules)
-                        {
-                            var item = new ListViewItem("");
-                            item.SubItems.Add(rule.Text);
-                            item.SubItems.Add(rule.Description);
-                            item.Tag = rule;
-                            listView1.Items.Add(item);
-                            _currentHighlightGroup.HighlightEntryList.Add(Rule2HightlightEntry(rule));
-                        }
-                        RemoveTempHighlights();
-                        OnCurrentHighlightListChanged();
-                    }
-
-                    RefreshIDs();
-                    _filterParams.Rules = Rules;
+                    RefreshList();
+                    SyncHighlightList();
+                    
                 }
             }
         }

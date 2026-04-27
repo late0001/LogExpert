@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 
@@ -50,6 +51,7 @@ internal sealed class LogWindowCoordinator (
     /// </summary>
     public void OnHighlightSettingsChanged ()
     {
+        Debug.WriteLine($"[LogWindowCoordinator::OnHighlightSettingsChanged] HighlightSettingsChanged?.Invoke(this, EventArgs.Empty);");
         HighlightSettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
