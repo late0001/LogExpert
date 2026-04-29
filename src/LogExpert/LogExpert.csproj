@@ -20,6 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Start.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
