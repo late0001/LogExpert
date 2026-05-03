@@ -5341,6 +5341,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                 _ = text.AppendLine(line == null ? string.Empty : $"{line.FullLine}");
             }
             var dlg = new AddFilterDialog(text.ToString());
+            dlg.StartPosition = FormStartPosition.CenterParent;
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 Rules.Add(dlg.Rule);
@@ -8437,6 +8438,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     private void addFilterRuleToolStripMenuItem_Click (object sender, EventArgs e)
     {
         var dlg = new AddFilterDialog();
+        dlg.StartPosition = FormStartPosition.CenterParent;
         if (dlg.ShowDialog() != DialogResult.OK) return;
 
         var newRule = dlg.Rule;
@@ -8724,7 +8726,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         {
             // 打开修改窗口
             var dlg = new AddFilterDialog(rule);
-
+            dlg.StartPosition = FormStartPosition.CenterParent;
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 int idx = Rules.IndexOf(rule);
