@@ -287,7 +287,6 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
         listView1.ContextMenuStrip = filterLvContextMenuStrip;
         listView1.OwnerDraw = true;
-        listView1.Paint += Listview1_Paint;
         ResumeLayout();
     }
 
@@ -8594,6 +8593,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
         // 其他列默认绘制
         e.DrawDefault = true;
+        DrawInsertLine(e.Graphics);
     }
 
     private void listView1_DrawColumnHeader (object sender, DrawListViewColumnHeaderEventArgs e)
@@ -8656,36 +8656,47 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             _dragHoverIndex = newIndex;
             listView1.Invalidate(); // 只在需要时刷新
         }
+        
     }
 
     private void listView1_DragDrop (object sender, DragEventArgs e)
     {
+        // 先拿值
         int insertIndex = _dragHoverIndex;
         int originalIndex = _draggedOriginalIndex;
+        //无论成功失败，必须重置！！！
         _dragHoverIndex = -1;
         _draggedOriginalIndex = -1;
-        listView1.Invalidate();
+        listView1.Invalidate(); //隐藏蓝线
 
         if (!e.Data.GetDataPresent(typeof(ListViewItem)))
             return;
-        if (insertIndex < 0 || originalIndex < 0 || insertIndex == listView1.Items.Count)
+        if (originalIndex < 0  || originalIndex >= Rules.Count) 
             return;
-        if (insertIndex == originalIndex)
+        // 插入位置不能是负数，但可以是最后一位
+        if (insertIndex < 0 )
             return;
-        if (originalIndex >= Rules.Count)
+        //位置没变不处理
+        if (insertIndex == originalIndex || insertIndex == originalIndex+1)
             return;
-
+        //开始移动
         var rule = Rules[originalIndex];
         Rules.RemoveAt(originalIndex);
+        // 🔥 关键：如果插入位置 > 原来的位置，要 -1
+        if (insertIndex > originalIndex)
+            insertIndex--;
+
         //插入到新位置
         Rules.Insert(insertIndex, rule);
+
         // 刷新整个列表
         RefreshList();
         SyncHighlightList();
 
     }
 
-    public void Listview1_Paint (object sender, PaintEventArgs e)
+    // 抽成公共方法，给 DrawSubItem 调用
+    private void DrawInsertLine (Graphics g)
     {
         if (_dragHoverIndex < 0) return;
 
@@ -8701,8 +8712,8 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             y = listView1.Items[_dragHoverIndex].Bounds.Top;
         }
 
-        e.Graphics.DrawLine(pen, listView1.ClientRectangle.Left, y, listView1.ClientRectangle.Right, y);
-
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        g.DrawLine(pen, 0, y, listView1.ClientSize.Width, y);
     }
 
     private void listView1_MouseDoubleClick (object sender, MouseEventArgs e)
