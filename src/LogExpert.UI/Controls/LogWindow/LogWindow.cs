@@ -8440,15 +8440,12 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         if (dlg.ShowDialog() != DialogResult.OK) return;
 
         var newRule = dlg.Rule;
-        if (listView1.SelectedItems.Count > 0)
-        {
-            int idx = listView1.SelectedItems[0].Index;
-            Rules.Insert(idx, newRule);
-        }
-        else
-        {
-            Rules.Add(newRule);
-        }
+        // 选中就插在选中项前面，没选中就插在最后
+        int insertIndex = listView1.SelectedItems.Count > 0
+            ? listView1.SelectedItems[0].Index
+            : Rules.Count;
+
+        Rules.Insert(insertIndex, newRule);
 
         RefreshList();
         SyncHighlightList();
