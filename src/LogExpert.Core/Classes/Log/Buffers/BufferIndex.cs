@@ -4,7 +4,7 @@ using System.Globalization;
 
 using NLog;
 
-namespace LogExpert.Core.Classes.Log;
+namespace LogExpert.Core.Classes.Log.Buffers;
 
 /*
  * !IMPORTANT
@@ -122,7 +122,7 @@ public sealed class BufferIndex : IDisposable
 
         // Layer 3: Branchless binary search with power-of-two strides
         var step = HighestPowerOfTwo(count);
-        var idx = (arr[step - 1].StartLine <= lineNum) ? count - step : 0;
+        var idx = arr[step - 1].StartLine <= lineNum ? count - step : 0;
 
         for (step >>= 1; step > 0; step >>= 1)
         {
@@ -525,7 +525,7 @@ public sealed class BufferIndex : IDisposable
         cacheEntry.Touch();
     }
 
-    private static int HighestPowerOfTwo (int n) => 1 << (31 - int.LeadingZeroCount(n));
+    private static int HighestPowerOfTwo (int n) => 1 << 31 - int.LeadingZeroCount(n);
 
     public void Dispose ()
     {
