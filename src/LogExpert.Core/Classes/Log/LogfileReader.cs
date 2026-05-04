@@ -1834,7 +1834,7 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
     public void Dispose ()
     {
         Dispose(true);
-        GC.SuppressFinalize(this); // Suppress finalization (not needed but best practice)
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -1854,11 +1854,15 @@ public partial class LogfileReader : IAutoLogLineMemoryColumnizerCallback, IDisp
         {
             if (disposing)
             {
+                //Keep Dispose Order unless otherwise noted.
+                //For example, the progress reporter waits 2 seconds for the dispatch task
+                //and DeleteAllContent may trigger final events.
                 DeleteAllContent();
                 _cts.Dispose();
                 BufferIndex.Dispose();
+                _progressReporter.Dispose(); 
                 _mmfReader?.Dispose();
-                _progressReporter?.Dispose();
+                
             }
 
             _disposed = true;
