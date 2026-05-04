@@ -432,7 +432,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     public Font BoldFont { get; private set; }
 
-    LogfileReader ILogWindow.LogFileReader => _logFileReader;
+    ILogfileReader ILogWindow.LogFileReader => _logFileReader;
 
     //public event EventHandler<EventArgs> ILogWindow.FileSizeChanged
     //{
