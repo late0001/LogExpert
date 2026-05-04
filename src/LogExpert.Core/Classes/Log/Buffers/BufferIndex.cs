@@ -122,7 +122,7 @@ public sealed class BufferIndex : IDisposable
 
         // Layer 3: Branchless binary search with power-of-two strides
         var step = HighestPowerOfTwo(count);
-        var idx = arr[step - 1].StartLine <= lineNum ? count - step : 0;
+        var idx = (arr[step - 1].StartLine <= lineNum) ? count - step : 0;
 
         for (step >>= 1; step > 0; step >>= 1)
         {
@@ -338,6 +338,14 @@ public sealed class BufferIndex : IDisposable
                 var kvp = entries[i];
                 if (_lruCacheDict.TryRemove(kvp.Key, out var removed))
                 {
+                    // Skip pinned buffers — the UI is actively displaying their content.
+                    // Re-add to LRU so they'll be reconsidered in a future eviction pass.
+                    if (removed.LogBuffer.IsPinned)
+                    {
+                        _lruCacheDict.TryAdd(kvp.Key, removed);
+                        continue;
+                    }
+
                     var lockTaken = false;
                     try
                     {
@@ -365,6 +373,33 @@ public sealed class BufferIndex : IDisposable
             _logger.Info(CultureInfo.InvariantCulture, "Garbage collector time: " + (endTime - startTime) + " ms.");
         }
 #endif
+    }
+
+    /// <summary>
+    /// Pins all buffers that cover the specified line range. Returns a <see cref="PinHandle"/>
+    /// that unpins them on dispose. Caller must hold at least a read lock.
+    /// </summary>
+    public PinHandle PinRange (int startLine, int endLine)
+    {
+        var pinned = new List<LogBuffer>();
+        var line = startLine;
+
+        while (line <= endLine)
+        {
+            var entry = TryFindBuffer(line);
+            if (!entry.Found || entry.Buffer is null)
+            {
+                break;
+            }
+
+            entry.Buffer.Pin();
+            pinned.Add(entry.Buffer);
+
+            // Jump to next buffer's start line to avoid redundant lookups
+            line = entry.Buffer.StartLine + entry.Buffer.LineCount;
+        }
+
+        return new PinHandle(pinned);
     }
 
     /// <summary>
@@ -525,7 +560,7 @@ public sealed class BufferIndex : IDisposable
         cacheEntry.Touch();
     }
 
-    private static int HighestPowerOfTwo (int n) => 1 << 31 - int.LeadingZeroCount(n);
+    private static int HighestPowerOfTwo (int n) => 1 << (31 - int.LeadingZeroCount(n));
 
     public void Dispose ()
     {
