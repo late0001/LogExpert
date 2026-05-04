@@ -6656,8 +6656,25 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     : Column.EmptyColumn;
             }
         }
-        catch
+        catch (IndexOutOfRangeException ex)
         {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get cell value due to index error. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
+            return Column.EmptyColumn;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get cell value due to argument range error. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
+            return Column.EmptyColumn;
+        }
+        catch (NullReferenceException ex)
+        {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get cell value due to null state. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
             return Column.EmptyColumn;
         }
 
@@ -6702,8 +6719,25 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     : Column.EmptyColumn;
             }
         }
-        catch
+        catch (IndexOutOfRangeException ex)
         {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get filter cell value due to index error. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
+            return Column.EmptyColumn;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get filter cell value due to argument range error. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
+            return Column.EmptyColumn;
+        }
+        catch (NullReferenceException ex)
+        {
+#if DEBUG
+            _logger.Warn(ex, "Failed to get filter cell value due to null state. rowIndex={RowIndex}, columnIndex={ColumnIndex}", rowIndex, columnIndex);
+#endif
             return Column.EmptyColumn;
         }
 
