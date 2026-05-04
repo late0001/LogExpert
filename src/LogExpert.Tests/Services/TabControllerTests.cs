@@ -1,5 +1,4 @@
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 
 using LogExpert.UI.Controls.LogWindow;
 using LogExpert.UI.Services.TabControllerService;
@@ -12,13 +11,11 @@ namespace LogExpert.Tests.Services;
 
 /// <summary>
 /// Unit tests for TabController.
-/// 
-/// Note: Many tests are limited because LogWindow is a complex WinForms control
-/// that cannot be easily mocked or subclassed. Tests that require actual LogWindow
-/// instances would need to be run as integration tests with full UI infrastructure.
-/// 
-/// These tests focus on the core TabController functionality that can be tested
-/// without instantiating LogWindow objects.
+/// Note: Many tests are limited because LogWindow is a complex WinForms control that cannot be easily mocked or
+/// subclassed. Tests that require actual LogWindow instances would need to be run as integration tests with full UI
+/// infrastructure.
+/// These tests focus on the core TabController functionality that can be tested without instantiating LogWindow
+/// objects.
 /// </summary>
 [TestFixture]
 [SupportedOSPlatform("windows")]
@@ -55,7 +52,9 @@ internal class TabControllerTests : IDisposable
         _testForm?.Dispose();
     }
 
-    public void Dispose()
+    #region IDisposable Implementation
+
+    public void Dispose ()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -76,6 +75,8 @@ internal class TabControllerTests : IDisposable
 
         _disposed = true;
     }
+
+    #endregion
 
     #region Constructor Tests
 
