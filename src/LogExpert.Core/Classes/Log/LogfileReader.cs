@@ -1261,11 +1261,11 @@ public partial class LogfileReader : ILogfileReader, IMultiFileNavigation, ILogf
                         // Must happen before Monitor.Exit so the buffer is still exclusively owned.
                         if (reader is PositionAwareStreamReaderSystem systemDetachBlockReader)
                         {
-                            logBuffer.AttachCharBlocks(systemDetachBlockReader.BlockAllocator.DetachBlocks());
+                            logBuffer.AttachRcBlocks(systemDetachBlockReader.BlockAllocator.DetachRcBlocks());
                         }
                         else if (reader is PositionAwareStreamReaderDirect directReader)
                         {
-                            logBuffer.AttachCharBlocks(directReader.DetachBlocks());
+                            logBuffer.AttachRcBlocks(directReader.BlockAllocator.DetachRcBlocks());
                         }
 
                         Monitor.Exit(logBuffer);
@@ -1300,11 +1300,11 @@ public partial class LogfileReader : ILogfileReader, IMultiFileNavigation, ILogf
                 // Attach remaining blocks to the final buffer
                 if (reader is PositionAwareStreamReaderSystem systemDetachBlockReader2)
                 {
-                    logBuffer.AttachCharBlocks(systemDetachBlockReader2.BlockAllocator.DetachBlocks());
+                    logBuffer.AttachRcBlocks(systemDetachBlockReader2.BlockAllocator.DetachRcBlocks());
                 }
                 else if (reader is PositionAwareStreamReaderDirect directReader)
                 {
-                    logBuffer.AttachCharBlocks(directReader.DetachBlocks());
+                    logBuffer.AttachRcBlocks(directReader.BlockAllocator.DetachRcBlocks());
                 }
             }
             finally
@@ -1430,11 +1430,11 @@ public partial class LogfileReader : ILogfileReader, IMultiFileNavigation, ILogf
                     // Attach char blocks from the reader to the re-read buffer
                     if (reader is PositionAwareStreamReaderSystem systemReader)
                     {
-                        logBuffer.AttachCharBlocks(systemReader.BlockAllocator.DetachBlocks());
+                        logBuffer.AttachRcBlocks(systemReader.BlockAllocator.DetachRcBlocks());
                     }
                     else if (reader is PositionAwareStreamReaderDirect directReader)
                     {
-                        logBuffer.AttachCharBlocks(directReader.DetachBlocks());
+                        logBuffer.AttachRcBlocks(directReader.BlockAllocator.DetachRcBlocks());
                     }
 
                     if (maxLinesCount != logBuffer.LineCount)

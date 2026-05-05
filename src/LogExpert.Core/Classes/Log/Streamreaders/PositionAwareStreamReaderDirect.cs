@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using LogExpert.Core.Classes.Log.Buffers;
@@ -30,7 +31,8 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
     private bool _eof;
     private int _newLineSequenceLength;
     private readonly List<char[]> _completedBlocks = [];
-
+    private readonly CharBlockAllocator _blockAllocator = new ();
+    public CharBlockAllocator BlockAllocator => _blockAllocator;
     public override bool IsDisposed { get; protected set; }
 
     #endregion
@@ -136,12 +138,6 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
     }
 
     /// <summary>
-    /// Gets the block allocator for compatibility with the DetachBlocks pattern.
-    /// This reader manages its own blocks directly rather than through CharBlockAllocator.
-    /// </summary>
-    public CharBlockAllocator? BlockAllocator => null;
-
-    /// <summary>
     /// Detaches completed blocks (fully scanned) for transfer to the LogBuffer.
     /// The current _readBlock (partially scanned) stays with the reader.
     /// </summary>
@@ -178,6 +174,14 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
     #endregion
 
     #region Private Methods
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FastFindNewline (Span<char> span)
+    {
+        for (int i = 0; i < span.Length; i++)
+            if (span[i] == '\n') return i;
+        return -1;
+    }
 
     private void RefillBlock (StreamReader reader)
     {

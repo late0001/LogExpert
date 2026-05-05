@@ -19,21 +19,21 @@ public class LogBufferCharBlockTests
     public void Setup ()
     {
         _mockFileInfo = new Mock<ILogFileInfo>();
-        _ = _mockFileInfo.Setup(f => f.FullName).Returns("test.log");
+        _mockFileInfo.Setup(f => f.FullName).Returns("test.log");
     }
 
     [Test]
-    public void AttachCharBlocks_AcceptsBlockList ()
+    public void AttachRcBlocks_AcceptsBlockList()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var blocks = new List<char[]>
+        var blocks = new List<RcCharBlock>
         {
-            ArrayPool<char>.Shared.Rent(128),
-            ArrayPool<char>.Shared.Rent(128)
+            RcCharBlock.Rent(128),
+            RcCharBlock.Rent(128)
         };
 
         // Should not throw
-        buffer.AttachCharBlocks(blocks);
+        buffer.AttachRcBlocks(blocks);
 
         // Clean up via eviction
         buffer.EvictContent();
@@ -44,8 +44,8 @@ public class LogBufferCharBlockTests
     public void EvictContent_WhilePinned_TriggersDebugAssert ()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var block = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block]);
+        var block = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block]);
         buffer.AddLine(new LogLine("test".AsMemory(), 0), 0);
         buffer.Pin();
 
@@ -60,11 +60,11 @@ public class LogBufferCharBlockTests
 
     [Test]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Unit Tests")]
-    public void EvictContent_ReturnsAttachedCharBlocks ()
+    public void EvictContent_ReturnsAttachedRcBlocks()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var block = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block]);
+        var block = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block]);
 
         // Add a line so there's something to evict
         var lineMemory = "test line".AsMemory();
@@ -72,100 +72,88 @@ public class LogBufferCharBlockTests
 
         buffer.EvictContent();
 
-        // After eviction, the block should have been returned to the pool.
-        // We can't directly assert pool return, but we can verify no exception
-        // and that re-attaching new blocks works.
-        var newBlock = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([newBlock]);
-        buffer.EvictContent(); // clean up
-    }
-
-    [Test]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Unit Tests")]
-    public void DisposeContent_ReturnsAttachedCharBlocks ()
-    {
-        var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var block = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block]);
-
-        buffer.AddLine(new LogLine("test".AsMemory(), 0), 0);
-
-        buffer.DisposeContent();
-
-        // Should be able to reinitialise and attach new blocks
-        buffer.Reinitialise(_mockFileInfo.Object, 10);
-        var newBlock = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([newBlock]);
+        var newBlock = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([newBlock]);
         buffer.EvictContent();
     }
 
     [Test]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Unit Tests")]
-    public void ClearLines_ReturnsAttachedCharBlocks ()
+    public void DisposeContent_ReturnsAttachedRcBlocks()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var block = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block]);
+        var block = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block]);
 
         buffer.AddLine(new LogLine("test".AsMemory(), 0), 0);
+        buffer.DisposeContent();
 
+        buffer.Reinitialise(_mockFileInfo.Object, 10);
+        var newBlock = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([newBlock]);
+        buffer.EvictContent();
+    }
+
+    [Test]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Unit Tests")]
+    public void ClearLines_ReturnsAttachedRcBlocks()
+    {
+        var buffer = new LogBuffer(_mockFileInfo.Object, 10);
+        var block = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block]);
+
+        buffer.AddLine(new LogLine("test".AsMemory(), 0), 0);
         buffer.ClearLines();
 
         Assert.That(buffer.LineCount, Is.EqualTo(0));
 
-        // Attach new blocks after clear
-        var newBlock = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([newBlock]);
+        var newBlock = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([newBlock]);
         buffer.EvictContent();
     }
 
     [Test]
-    public void Reinitialise_ReturnsAttachedCharBlocks ()
+    public void Reinitialise_ReturnsAttachedRcBlocks()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-        var block = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block]);
+        var block = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block]);
 
         buffer.Reinitialise(_mockFileInfo.Object, 10);
 
-        // After reinitialise, old blocks should be returned.
-        // Verify by attaching new blocks (no double-return crash).
-        var newBlock = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([newBlock]);
+        var newBlock = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([newBlock]);
         buffer.EvictContent();
     }
 
     [Test]
-    public void AttachCharBlocks_ReturnsOldBlocks_WhenCalledTwice ()
+    public void AttachRcBlocks_ReturnsOldBlocks_WhenCalledTwice()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
 
-        var block1 = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block1]);
+        var block1 = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block1]);
 
-        // Attaching new blocks should return the old ones first
-        var block2 = ArrayPool<char>.Shared.Rent(128);
-        buffer.AttachCharBlocks([block2]);
+        var block2 = RcCharBlock.Rent(128);
+        buffer.AttachRcBlocks([block2]);
 
         buffer.EvictContent();
     }
 
     [Test]
-    public void AttachCharBlocks_Null_DoesNotThrow ()
+    public void AttachRcBlocks_Null_DoesNotThrow()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-
-        buffer.AttachCharBlocks(null);
-        buffer.EvictContent(); // should not throw
+        buffer.AttachRcBlocks(null);
+        buffer.EvictContent();
     }
 
     [Test]
-    public void AttachCharBlocks_EmptyList_DoesNotThrow ()
+    public void AttachRcBlocks_EmptyList_DoesNotThrow()
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
-
-        buffer.AttachCharBlocks([]);
-        buffer.EvictContent(); // should not throw
+        buffer.AttachRcBlocks([]);
+        buffer.EvictContent();
     }
 
     [Test]
@@ -185,17 +173,16 @@ public class LogBufferCharBlockTests
     {
         var buffer = new LogBuffer(_mockFileInfo.Object, 10);
 
-        // Simulate block-based allocation: rent a block, write lines into it
-        var block = ArrayPool<char>.Shared.Rent(1024);
-        "Hello World".AsSpan().CopyTo(block.AsSpan(0, 11));
-        "Second Line".AsSpan().CopyTo(block.AsSpan(11, 11));
+        var block = RcCharBlock.Rent(1024);
+        "Hello World".AsSpan().CopyTo(block.Buffer.AsSpan(0, 11));
+        "Second Line".AsSpan().CopyTo(block.Buffer.AsSpan(11, 11));
 
-        var line1Memory = new ReadOnlyMemory<char>(block, 0, 11);
-        var line2Memory = new ReadOnlyMemory<char>(block, 11, 11);
+        var line1Memory = new ReadOnlyMemory<char>(block.Buffer, 0, 11);
+        var line2Memory = new ReadOnlyMemory<char>(block.Buffer, 11, 11);
 
         buffer.AddLine(new LogLine(line1Memory, 0), 0);
         buffer.AddLine(new LogLine(line2Memory, 1), 11);
-        buffer.AttachCharBlocks([block]);
+        buffer.AttachRcBlocks([block]);
 
         // Lines should be readable while buffer is alive
         var retrieved1 = buffer.GetLineMemoryOfBlock(0);
@@ -203,23 +190,8 @@ public class LogBufferCharBlockTests
         Assert.That(retrieved1.HasValue, Is.True);
         Assert.That(retrieved2.HasValue, Is.True);
 
-        if (retrieved1 is not { } retrievedLine1)
-        {
-            Assert.Fail("Expected first retrieved line to have a value.");
-        }
-        else
-        {
-            Assert.That(retrievedLine1.FullLine.Span.ToString(), Is.EqualTo("Hello World"));
-        }
-
-        if (retrieved2 is not { } retrievedLine2)
-        {
-            Assert.Fail("Expected second retrieved line to have a value.");
-        }
-        else
-        {
-            Assert.That(retrievedLine2.FullLine.Span.ToString(), Is.EqualTo("Second Line"));
-        }
+        Assert.That(retrieved1.Value.FullLine.Span.ToString(), Is.EqualTo("Hello World"));
+        Assert.That(retrieved2.Value.FullLine.Span.ToString(), Is.EqualTo("Second Line"));
 
         // After eviction, blocks are returned and lines are no longer accessible
         buffer.EvictContent();

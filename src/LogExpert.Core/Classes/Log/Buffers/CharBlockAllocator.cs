@@ -2,135 +2,137 @@ using System.Buffers;
 
 namespace LogExpert.Core.Classes.Log.Buffers;
 
-/// <remarks>
-/// Blocks are rented from <see cref="ArrayPool{T}.Shared"/> and returned when the owning <see cref="LogBuffer"/> is
-/// evicted. The pinning mechanism (Phase 1/2) ensures that buffers whose content is still displayed by the UI are
-/// exempt from eviction, preventing use-after-return corruption.
-/// This class is NOT thread-safe. Each reader/fill operation should use its own instance.
-/// </remarks>
 public sealed class CharBlockAllocator : IDisposable
 {
-    private const int DEFAULT_BLOCK_SIZE = 32_768; // 64 KB (32K chars × 2 bytes), stays under 85 KB LOH threshold
+    private const int DEFAULT_BLOCK_SIZE = 32768; // 64 KB (32K chars × 2 bytes), stays under 85 KB LOH threshold
 
     private readonly int _blockSize;
-    private List<char[]> _blocks = [];
-    private readonly List<char[]> _oversizedBlocks = [];
-    private char[] _currentBlock;
+    private List<RcCharBlock> _blocks = new();
+    private List<RcCharBlock> _oversizedBlocks = new();
+    private RcCharBlock _currentBlock = null!;
     private int _currentOffset;
     private bool _disposed;
 
     public CharBlockAllocator (int blockSize = DEFAULT_BLOCK_SIZE)
     {
         _blockSize = blockSize;
-        _currentBlock = ArrayPool<char>.Shared.Rent(_blockSize);
+        _currentBlock = RcCharBlock.Rent(_blockSize);
         _blocks.Add(_currentBlock);
         _currentOffset = 0;
     }
 
-    /// <summary>
-    /// Gets the number of normal (fixed-size) blocks currently rented from the pool.
-    /// </summary>
+    // 供测试使用
     public int BlockCount => _blocks.Count;
-
-    /// <summary>
-    /// Gets the number of oversized (standalone) blocks currently rented from the pool.
-    /// Useful for diagnostics — a high count indicates pathological line lengths.
-    /// </summary>
     public int OversizedBlockCount => _oversizedBlocks.Count;
 
-    /// <summary>
-    /// Allocates a <see cref="Memory{Char}"/> region of the specified length from the current block.
-    /// If the current block has insufficient space, a new block is rented.
-    /// Lines longer than the block size receive a standalone rental tracked separately.
-    /// </summary>
-    public Memory<char> Rent (int length)
+    public ReadOnlyMemory<char> Allocate(ReadOnlySpan<char> content)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        int length = content.Length;
 
-        if (length <= 0)
+        if (length >= LogMemoryPool.LargeLineThreshold)
         {
+            var large = RcCharBlock.Rent(length);
+            content.CopyTo(large.Buffer);
+            _oversizedBlocks.Add(large);
+            return large.Slice(0, length);
+        }
+
+        // 空间不足则新建块
+        if (_currentOffset + length > _currentBlock.Capacity)
+        {
+            _currentBlock = RcCharBlock.Rent(_blockSize);
+            _blocks.Add(_currentBlock);
+            _currentOffset = 0;
+        }
+
+        // 拷贝内容+切片
+        content.CopyTo(_currentBlock.Buffer.AsSpan(_currentOffset));
+        var memory = _currentBlock.Slice(_currentOffset, length);
+        _currentOffset += length;
+        return memory;
+    }
+
+    //
+    public Memory<char> Rent(int length)
+    {
+        if (length == 0)
             return Memory<char>.Empty;
-        }
 
-        // Oversized line: give it its own array, tracked separately
-        if (length > _blockSize)
+        if (length >= LogMemoryPool.LargeLineThreshold)
         {
-            var oversized = new char[length];
-            _oversizedBlocks.Add(oversized);
-            return oversized.AsMemory(0, length);
+            var largeBlock = RcCharBlock.Rent(length);
+            _oversizedBlocks.Add(largeBlock);
+            return largeBlock.Buffer.AsMemory(0, length);
         }
 
-        // Current block has space
-        if (_currentOffset + length <= _currentBlock.Length)
+        if (_currentOffset + length > _currentBlock.Capacity)
         {
-            var memory = _currentBlock.AsMemory(_currentOffset, length);
-            _currentOffset += length;
-            return memory;
+            _currentBlock = RcCharBlock.Rent(_blockSize);
+            _blocks.Add(_currentBlock);
+            _currentOffset = 0;
         }
 
-        // Need a new block
-        _currentBlock = ArrayPool<char>.Shared.Rent(_blockSize);
-        _blocks.Add(_currentBlock);
-        _currentOffset = length;
-        return _currentBlock.AsMemory(0, length);
+        var mem = _currentBlock.Buffer.AsMemory(_currentOffset, length);
+        _currentOffset += length;
+        return mem;
+    }
+
+    public bool TryRent (int length, out Memory<char> memory)
+    {
+        try
+        {
+            memory = Rent(length);
+            return true;
+        }
+        catch (OutOfMemoryException)
+        {
+            memory = default;
+            return false;
+        }
     }
 
     /// <summary>
-    /// Detaches and returns the list of all blocks (normal + oversized). After this call,
-    /// the allocator no longer owns those blocks — the caller (LogBuffer) holds them
-    /// until GC collects them after all <see cref="ReadOnlyMemory{Char}"/> slices are released.
+    /// 剥离所有RC内存块，移交LogBuffer管理
     /// </summary>
-    public List<char[]> DetachBlocks ()
+    public List<RcCharBlock> DetachRcBlocks()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        // Merge oversized blocks into the main list so the caller owns everything
-        if (_oversizedBlocks.Count > 0)
-        {
-            _blocks.AddRange(_oversizedBlocks);
-            _oversizedBlocks.Clear();
-        }
-
-        // Swap the list — O(1), no copy. Caller owns the old list.
-        var blocks = _blocks;
-        _currentBlock = ArrayPool<char>.Shared.Rent(_blockSize);
-        _blocks = [_currentBlock];
+        var list = _blocks;
+        _currentBlock = RcCharBlock.Rent(_blockSize);
+        _blocks = new List<RcCharBlock> { _currentBlock };
         _currentOffset = 0;
-        return blocks;
+        return list;
     }
 
     /// <summary>
-    /// Returns all blocks to <see cref="ArrayPool{T}.Shared"/>.
-    /// Safe to call only when no <see cref="ReadOnlyMemory{Char}"/> slices reference these blocks
-    /// (i.e., after DetachBlocks transferred ownership to LogBuffer, and the reader is being disposed).
+    /// 兼容旧逻辑：剥离原始char[]（保留适配旧接口）
     /// </summary>
-    public void ReturnAll ()
+    public List<char[]> DetachBlocks()
     {
-        foreach (var block in _blocks)
-        {
-            ArrayPool<char>.Shared.Return(block);
-        }
+        var list = new List<char[]>();
+        foreach (var b in _blocks) list.Add(b.Buffer);
+        foreach (var b in _oversizedBlocks) list.Add(b.Buffer);
 
-        _blocks.Clear();
-
-        foreach (var block in _oversizedBlocks)
-        {
-            ArrayPool<char>.Shared.Return(block);
-        }
-
+        _currentBlock = RcCharBlock.Rent(_blockSize);
+        _blocks = new List<RcCharBlock> { _currentBlock };
         _oversizedBlocks.Clear();
-        _currentBlock = null!;
         _currentOffset = 0;
+        return list;
+    }
+
+    public void ReturnAll()
+    {
+        foreach (var block in _blocks) block.Dispose();
+        foreach (var block in _oversizedBlocks) block.Dispose();
+        _blocks.Clear();
+        _oversizedBlocks.Clear();
     }
 
     public void Dispose ()
     {
-        if (_disposed)
+        if (!_disposed)
         {
-            return;
+            ReturnAll();
+            _disposed = true;
         }
-
-        ReturnAll();
-        _disposed = true;
     }
 }
