@@ -65,7 +65,7 @@ public class CharBlockAllocatorTests
         _ = allocator.Rent(100);
         _ = allocator.Rent(100); // triggers second block
 
-        var blocks = allocator.DetachBlocks();
+        var blocks = allocator.DetachRcBlocks();
 
         Assert.That(blocks, Has.Count.EqualTo(2));
         Assert.That(allocator.BlockCount, Is.EqualTo(1)); // fresh block created
@@ -82,7 +82,7 @@ public class CharBlockAllocatorTests
 
         Assert.That(allocator.OversizedBlockCount, Is.EqualTo(1));
 
-        var blocks = allocator.DetachBlocks();
+        var blocks = allocator.DetachRcBlocks();
 
         // All blocks (normal + oversized) are transferred to caller
         Assert.That(blocks, Has.Count.EqualTo(3)); // initial + second normal + oversized

@@ -278,11 +278,11 @@ public class PositionAwareStreamReaderDirectTests
             // Intentionally empty: consume all lines to advance reader state.
         }
 
-        var blocks = reader.DetachBlocks();
+        var blocks = reader.BlockAllocator.DetachRcBlocks();
         Assert.That(blocks.Count, Is.GreaterThan(0), "Should have completed blocks to detach");
 
         // Second detach should be empty
-        var blocks2 = reader.DetachBlocks();
+        var blocks2 = reader.BlockAllocator.DetachRcBlocks();
         Assert.That(blocks2.Count, Is.EqualTo(0));
     }
 

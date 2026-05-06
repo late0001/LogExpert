@@ -103,21 +103,6 @@ public sealed class CharBlockAllocator : IDisposable
         return list;
     }
 
-    /// <summary>
-    /// 兼容旧逻辑：剥离原始char[]（保留适配旧接口）
-    /// </summary>
-    public List<char[]> DetachBlocks()
-    {
-        var list = new List<char[]>();
-        foreach (var b in _blocks) list.Add(b.Buffer);
-        foreach (var b in _oversizedBlocks) list.Add(b.Buffer);
-
-        _currentBlock = RcCharBlock.Rent(_blockSize);
-        _blocks = new List<RcCharBlock> { _currentBlock };
-        _oversizedBlocks.Clear();
-        _currentOffset = 0;
-        return list;
-    }
 
     public void ReturnAll()
     {

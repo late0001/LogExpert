@@ -30,8 +30,8 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
     private int _scanOffset;       // current scan position in _readBlock
     private bool _eof;
     private int _newLineSequenceLength;
-    private readonly List<char[]> _completedBlocks = [];
-    private readonly CharBlockAllocator _blockAllocator = new ();
+    private readonly CharBlockAllocator _blockAllocator = new();
+
     public CharBlockAllocator BlockAllocator => _blockAllocator;
     public override bool IsDisposed { get; protected set; }
 
@@ -93,8 +93,10 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
                     // Enforce MaximumLineLength
                     var cappedLength = Math.Min(lineLength, MaximumLineLength);
 
-                    lineMemory = _readBlock.AsMemory(_scanOffset, cappedLength);
+                    var slice = _readBlock.AsMemory(_scanOffset, cappedLength);
 
+                    // 直接从内存池分配，零拷贝
+                    lineMemory = _blockAllocator.Allocate(slice.Span);
                     // Update byte position: line chars + lineLength
                     var contentSpan = _readBlock.AsSpan(_scanOffset, lineLength);
                     MovePosition(Encoding.GetByteCount(contentSpan) + _newLineSequenceLength);
@@ -114,8 +116,9 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
                 {
                     var remaining = _readBlockLength - _scanOffset;
                     var cappedLength = Math.Min(remaining, MaximumLineLength);
-                    lineMemory = _readBlock.AsMemory(_scanOffset, cappedLength);
+                    var slice = _readBlock.AsMemory(_scanOffset, cappedLength);
 
+                    lineMemory = _blockAllocator.Allocate(slice.Span);
                     var fullSpan = _readBlock.AsSpan(_scanOffset, remaining);
                     MovePosition(Encoding.GetByteCount(fullSpan));
 
@@ -137,53 +140,11 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
         // Bulk return via DetachBlocks()/Dispose(). Individual return not needed.
     }
 
-    /// <summary>
-    /// Detaches completed blocks (fully scanned) for transfer to the LogBuffer.
-    /// The current _readBlock (partially scanned) stays with the reader.
-    /// </summary>
-    public List<char[]> DetachBlocks ()
-    {
-        // Nothing to detach: no completed blocks and no lines were scanned from the current block.
-        if (_completedBlocks.Count == 0 && _scanOffset == 0)
-        {
-            return [];
-        }
-
-        // The current _readBlock contains memory backing lines already added to the LogBuffer.
-        // It must be transferred to the buffer along with any completed blocks.
-        _completedBlocks.Add(_readBlock);
-
-        // Rent a fresh block and carry over any unscanned data (partial line in progress)
-        var tailLength = _readBlockLength - _scanOffset;
-        var newBlock = ArrayPool<char>.Shared.Rent(BLOCK_SIZE);
-
-        if (tailLength > 0)
-        {
-            _readBlock.AsSpan(_scanOffset, tailLength).CopyTo(newBlock.AsSpan(0, tailLength));
-        }
-
-        _readBlock = newBlock;
-        _readBlockLength = tailLength;
-        _scanOffset = 0;
-
-        var blocks = _completedBlocks.ToList();
-        _completedBlocks.Clear();
-        return blocks;
-    }
-
     #endregion
 
     #region Private Methods
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int FastFindNewline (Span<char> span)
-    {
-        for (int i = 0; i < span.Length; i++)
-            if (span[i] == '\n') return i;
-        return -1;
-    }
-
-    private void RefillBlock (StreamReader reader)
+    private void RefillBlock(StreamReader reader)
     {
         var tailLength = _readBlockLength - _scanOffset;
 
@@ -196,9 +157,7 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
             _readBlock.AsSpan(_scanOffset, tailLength).CopyTo(newBlock.AsSpan(0, tailLength));
         }
 
-        // The old block is fully scanned — add to completed list
-        _completedBlocks.Add(_readBlock);
-
+        ArrayPool<char>.Shared.Return(_readBlock);
         _readBlock = newBlock;
         _scanOffset = 0;
 
@@ -261,10 +220,7 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
             _scanOffset = 0;
             var charsRead = reader.Read(_readBlock, 0, BLOCK_SIZE);
             _readBlockLength = charsRead;
-            if (charsRead == 0)
-            {
-                _eof = true;
-            }
+            if (charsRead == 0) _eof = true;
         }
     }
 
@@ -279,13 +235,7 @@ public class PositionAwareStreamReaderDirect : PositionAwareStreamReaderBase, IL
                 _readBlock = null!;
             }
 
-            // Return any completed blocks not yet detached
-            foreach (var block in _completedBlocks)
-            {
-                ArrayPool<char>.Shared.Return(block);
-            }
-
-            _completedBlocks.Clear();
+            _blockAllocator.Dispose();
         }
 
         base.Dispose(disposing);

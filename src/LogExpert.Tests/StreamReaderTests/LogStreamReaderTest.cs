@@ -350,7 +350,7 @@ public class LogStreamReaderTest
             // Intentionally empty: consume all lines to advance reader state.
         }
 
-        var blocks = reader.BlockAllocator.DetachBlocks();
+        var blocks = reader.BlockAllocator.DetachRcBlocks();
         Assert.That(blocks, Has.Count.GreaterThanOrEqualTo(1));
 
         // After detach, allocator should have a fresh block

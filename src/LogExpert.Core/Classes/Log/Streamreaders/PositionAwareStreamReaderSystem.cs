@@ -20,15 +20,17 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
     private const int CHAR_LF = 0x0A;
 
     private int _newLineSequenceLength;
-
+    private CharBlockAllocator _blockAllocator;
     public override bool IsDisposed { get; protected set; }
 
     #endregion
 
     #region cTor
 
-    public PositionAwareStreamReaderSystem (Stream stream, EncodingOptions encodingOptions, int maximumLineLength) : base(stream, encodingOptions, maximumLineLength)
+    public PositionAwareStreamReaderSystem (Stream stream, EncodingOptions encodingOptions, int maximumLineLength) 
+	    : base(stream, encodingOptions, maximumLineLength)
     {
+        _blockAllocator = new CharBlockAllocator();
     }
 
     #endregion
@@ -39,12 +41,7 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
     /// Gets or creates the block allocator used by this reader instance.
     /// The caller can detach the blocks after reading a buffer's worth of lines.
     /// </summary>
-	private CharBlockAllocator _blockAllocator;
-    public CharBlockAllocator BlockAllocator
-    {
-        get => _blockAllocator ??= new CharBlockAllocator();
-        private set => _blockAllocator = value;
-    }
+    public CharBlockAllocator BlockAllocator => _blockAllocator;
 
     #endregion
 
@@ -55,9 +52,7 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
         var reader = GetStreamReader();
 
         if (_newLineSequenceLength == 0)
-        {
             _newLineSequenceLength = GuessNewLineSequenceLength(reader);
-        }
 
         var line = reader.ReadLine();
 
@@ -66,9 +61,7 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
             MovePosition(Encoding.GetByteCount(line) + _newLineSequenceLength);
 
             if (line.Length > MaximumLineLength)
-            {
                 line = line[..MaximumLineLength];
-            }
         }
 
         return line;
@@ -86,29 +79,22 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
         try
         {
             if (_newLineSequenceLength == 0)
-            {
                 _newLineSequenceLength = GuessNewLineSequenceLength(reader);
-            }
 
             // 读取行（不含换行符），并记录原始行长度
             var originalLine = reader.ReadLine();
             if (originalLine is null)
-            {
                 return false;
-            }
 
             // 修正1：计算实际截取的字符长度，并仅累加截取部分的字节数
-            var actualLength = Math.Min(originalLine.Length, MaximumLineLength);
-            var lineBytes = Encoding.GetByteCount(originalLine.AsSpan(0, actualLength));
+            int actualLength = Math.Min(originalLine.Length, MaximumLineLength);
+            int lineBytes = Encoding.GetByteCount(originalLine.AsSpan(0, actualLength));
             // 修正2：Position 仅累加 有效行字节数 + 换行符字节数（避免重复计算）
             MovePosition(lineBytes + _newLineSequenceLength);
 
-            // 修正3：安全分配内存，处理分配失败场景
-            var allocator = BlockAllocator;
-            if (!allocator.TryRent(actualLength, out var target)) // 新增 TryRent 方法（见下文）
-            {
+            // 从内存池分配，零GC
+            if (!_blockAllocator.TryRent(actualLength, out Memory<char> target)) // 新增 TryRent 方法（见下文）
                 return false;
-            }
 
             // 复制截取后的字符到分配的内存
             originalLine.AsSpan(0, actualLength).CopyTo(target.Span);
@@ -143,22 +129,23 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
 
     private int GuessNewLineSequenceLength (StreamReader reader)
     {
-        var currentPos = Position;
-        var originalStreamPos = reader.BaseStream.Position; // 记录原始流位置
+        long currentPos = Position;
+        long originalStreamPos = reader.BaseStream.Position; // 记录原始流位置
+
         try
         {
-            var line = reader.ReadLine();
-            if (line == null) return 0;
-
+            string? line = reader.ReadLine();
+            if (line == null)
+                return 0;
             // 仅累加行内容的字节数（不含换行符）
-            var lineBytes = Encoding.GetByteCount(line);
-            Position += lineBytes;
+            Position += Encoding.GetByteCount(line);
 
             int newLineByteCount = 0;
-            var firstChar = reader.Read();
+            int firstChar = reader.Read();
+
             if (firstChar == CHAR_CR)
             {
-                var secondChar = reader.Read();
+                int secondChar = reader.Read();
                 if (secondChar == CHAR_LF)
                 {
                     Span<char> crlf = ['\r', '\n'];
@@ -167,7 +154,8 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
                 else
                 {
                     // 仅 \r，回退第二个字符的读取位置
-                    if (secondChar != -1) reader.BaseStream.Position--;
+                    if (secondChar != -1) 
+						reader.BaseStream.Position--;
                     Span<char> cr = ['\r'];
                     newLineByteCount = Encoding.GetByteCount(cr);
                 }
@@ -175,8 +163,8 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
             else if (firstChar == CHAR_LF || firstChar != -1)
             {
                 // 仅 \n 或其他单个换行符
-                Span<char> single = [(char)firstChar];
-                newLineByteCount = Encoding.GetByteCount(single);
+                Span<char> lf = [(char)firstChar];
+                newLineByteCount = Encoding.GetByteCount(lf);
             }
 
             return newLineByteCount;
@@ -193,11 +181,11 @@ public class PositionAwareStreamReaderSystem : PositionAwareStreamReaderBase, IL
     {
         if (disposing)
         {
-            BlockAllocator?.Dispose();
-            BlockAllocator = null;
+            _blockAllocator?.Dispose();
         }
 
         base.Dispose(disposing);
+        IsDisposed = true;
     }
 
     #endregion
