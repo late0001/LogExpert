@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -24,6 +25,7 @@ using LogExpert.Core.Classes.Persister;
 using LogExpert.Core.Config;
 using LogExpert.Core.Entities;
 using LogExpert.Core.EventArguments;
+using LogExpert.Core.Extensions;
 using LogExpert.Core.Interfaces;
 using LogExpert.Dialogs;
 using LogExpert.UI.Dialogs;
@@ -39,6 +41,7 @@ using WeifenLuo.WinFormsUI.Docking;
 
 using static Vanara.PInvoke.CldApi;
 using static Vanara.PInvoke.FirewallApi;
+using static Vanara.PInvoke.MsftEdit;
 //using static LogExpert.PluginRegistry.PluginRegistry; //TODO: Adjust the instance name so using static can be used.
 
 namespace LogExpert.UI.Controls.LogWindow;
@@ -8822,7 +8825,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             _dragHoverIndex = newIndex;
             listView1.Invalidate(); // 只在需要时刷新
         }
-        
+
     }
 
     private void listView1_DragDrop (object sender, DragEventArgs e)
@@ -8837,13 +8840,13 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
         if (!e.Data.GetDataPresent(typeof(ListViewItem)))
             return;
-        if (originalIndex < 0  || originalIndex >= Rules.Count) 
+        if (originalIndex < 0 || originalIndex >= Rules.Count)
             return;
         // 插入位置不能是负数，但可以是最后一位
-        if (insertIndex < 0 )
+        if (insertIndex < 0)
             return;
         //位置没变不处理
-        if (insertIndex == originalIndex || insertIndex == originalIndex+1)
+        if (insertIndex == originalIndex || insertIndex == originalIndex + 1)
             return;
         //开始移动
         var rule = Rules[originalIndex];
@@ -8907,5 +8910,102 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             }
         }
     }
+    #region Copy To Jira
+    private void copyToJiraMenuItem_Click (object sender, EventArgs e)
+    {
+        CopyMarkedLinesToJiraColoredClipboard();
+    }
+    // 👇 新增：核心方法 —— 复制带颜色日志到Jira
+    private void CopyMarkedLinesToJiraColoredClipboard ()
+    {
+        if (_guiStateArgs.CellSelectMode)
+        {
+            var data = dataGridView.GetClipboardContent();
+            Clipboard.SetDataObject(data);
+        }
+        else
+        {
+            List<int> lineNumList = [];
+            foreach (DataGridViewRow row in dataGridView.SelectedRows)
+            {
+                if (row.Index != -1)
+                {
+                    lineNumList.Add(row.Index);
+                }
+            }
 
+            lineNumList.Sort();
+            StringBuilder clipText = new();
+            LogExpertCallback callback = new(this);
+            foreach (var lineNum in lineNumList)
+            {
+                var line = _logFileReader.GetLogLineMemory(lineNum);
+                if (CurrentColumnizer is ILogLineMemoryXmlColumnizer xmlColumnizer)
+                {
+                    callback.LineNum = lineNum;
+                    line = xmlColumnizer.GetLineTextForClipboard(line, callback);
+                }
+                var entry = FindHighlightEntry(line, false);
+                HighlightedCellStr(ref clipText, line, entry);
+            }
+
+            Clipboard.SetDataObject(clipText.ToString());
+        }
+        
+    }
+
+    // 👇 新增：颜色转16进制（Jira只认这个）
+    private string ColorToHex (Color c)
+    {
+        return $"{c.R:X2}{c.G:X2}{c.B:X2}";
+    }
+
+    private void HighlightedCellStr (ref StringBuilder sb, ILogLineMemory line, HighlightEntry groundEntry)
+    {
+
+        //string strLine= line.Text.ToString();
+
+        var matchList = FindHighlightMatches(line);
+        // too many entries per line seem to cause problems with the GDI
+        while (matchList.Count > 50)
+        {
+            matchList.RemoveAt(50);
+        }
+
+        //var he = new HighlightEntry
+        //{
+        //    SearchText = strLine,
+        //    ForegroundColor = groundEntry?.ForegroundColor ?? Color.FromKnownColor(KnownColor.Black),
+        //    BackgroundColor = groundEntry?.BackgroundColor ?? Color.Empty,
+        //    IsWordMatch = true
+        //};
+
+        //HighlightMatchEntry hme = new()
+        //{
+        //    StartPos = 0,
+        //    Length = strLine.Length,
+        //    HighlightEntry = he
+        //};
+
+        string strLine = line == null ? string.Empty : $"\t{line.LineNumber + 1}\t{line.FullLine}";
+        //matchList = MergeHighlightMatchEntries(matchList, hme);
+        if (matchList.IsEmpty())
+        {  
+            _ = sb.AppendLine(strLine);
+        }
+        else
+        {
+            foreach (var matchEntry in matchList)
+            {
+
+                var foreColor = matchEntry.HighlightEntry.ForegroundColor;
+                string hex = ColorToHex(foreColor);
+                _ = sb.Append($"{{color:#{hex}}}");
+                _ = sb.Append(strLine);
+                _ = sb.AppendLine("{color}");
+            }
+        }
+
+    }
+    #endregion
 }

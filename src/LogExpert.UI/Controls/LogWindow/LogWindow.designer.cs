@@ -138,6 +138,7 @@ namespace LogExpert.UI.Controls.LogWindow
             toolStripSeparator1 = new ToolStripSeparator();
             loadFiltersToolStripMenuItem = new ToolStripMenuItem();
             saveFiltersToolStripMenuItem = new ToolStripMenuItem();
+            copyToJiraMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -300,9 +301,9 @@ namespace LogExpert.UI.Controls.LogWindow
             // dataGridContextMenuStrip
             // 
             dataGridContextMenuStrip.ImageScalingSize = new Size(24, 24);
-            dataGridContextMenuStrip.Items.AddRange(new ToolStripItem[] { copyToolStripMenuItem, copyToTabToolStripMenuItem, menuToolStripSeparator1, scrollAllTabsToTimestampToolStripMenuItem, syncTimestampsToToolStripMenuItem, freeThisWindowFromTimeSyncToolStripMenuItem, locateLineInOriginalFileToolStripMenuItem, menuToolStripSeparator2, toggleBoomarkToolStripMenuItem, bookmarkCommentToolStripMenuItem, markEditModeToolStripMenuItem, menuToolStripSeparator3, tempHighlightsToolStripMenuItem, markCurrentFilterRangeToolStripMenuItem, pluginSeparator });
+            dataGridContextMenuStrip.Items.AddRange(new ToolStripItem[] { copyToolStripMenuItem, copyToJiraMenuItem, copyToTabToolStripMenuItem, menuToolStripSeparator1, scrollAllTabsToTimestampToolStripMenuItem, syncTimestampsToToolStripMenuItem, freeThisWindowFromTimeSyncToolStripMenuItem, locateLineInOriginalFileToolStripMenuItem, menuToolStripSeparator2, toggleBoomarkToolStripMenuItem, bookmarkCommentToolStripMenuItem, markEditModeToolStripMenuItem, menuToolStripSeparator3, tempHighlightsToolStripMenuItem, markCurrentFilterRangeToolStripMenuItem, pluginSeparator });
             dataGridContextMenuStrip.Name = "dataGridContextMenuStrip";
-            dataGridContextMenuStrip.Size = new Size(310, 270);
+            dataGridContextMenuStrip.Size = new Size(310, 314);
             dataGridContextMenuStrip.Opening += OnDataGridContextMenuStripOpening;
             // 
             // copyToolStripMenuItem
@@ -1245,6 +1246,13 @@ namespace LogExpert.UI.Controls.LogWindow
             saveFiltersToolStripMenuItem.Text = "Save";
             saveFiltersToolStripMenuItem.Click += saveFiltersToolStripMenuItem_Click;
             // 
+            // copyToJiraMenuItem
+            // 
+            copyToJiraMenuItem.Name = "copyToJiraMenuItem";
+            copyToJiraMenuItem.Size = new Size(309, 22);
+            copyToJiraMenuItem.Text = "Copy to Jira panel";
+            copyToJiraMenuItem.Click += copyToJiraMenuItem_Click;
+            // 
             // LogWindow
             // 
             ClientSize = new Size(1467, 918);
@@ -1408,5 +1416,6 @@ namespace LogExpert.UI.Controls.LogWindow
         private ToolStripMenuItem loadFiltersToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem removeAllFilterRuleToolStripMenuItem;
+        private ToolStripMenuItem copyToJiraMenuItem;
     }
 }
