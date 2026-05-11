@@ -3461,7 +3461,10 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             _ = columnComboBox.Items.Add(columnName);
         }
 
-        columnComboBox.SelectedIndex = 0;
+        if (columnComboBox.Items.Count > 0)
+        {
+            columnComboBox.SelectedIndex = 0;
+        }
 
         OnColumnizerChanged(CurrentColumnizer);
     }
