@@ -43,6 +43,7 @@ namespace LogExpert.UI.Controls.LogWindow
             dataGridView = new BufferedDataGridView();
             dataGridContextMenuStrip = new ContextMenuStrip(components);
             copyToolStripMenuItem = new ToolStripMenuItem();
+            copyToJiraMenuItem = new ToolStripMenuItem();
             copyToTabToolStripMenuItem = new ToolStripMenuItem();
             menuToolStripSeparator1 = new ToolStripSeparator();
             scrollAllTabsToTimestampToolStripMenuItem = new ToolStripMenuItem();
@@ -138,7 +139,6 @@ namespace LogExpert.UI.Controls.LogWindow
             toolStripSeparator1 = new ToolStripSeparator();
             loadFiltersToolStripMenuItem = new ToolStripMenuItem();
             saveFiltersToolStripMenuItem = new ToolStripMenuItem();
-            copyToJiraMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerLogWindow).BeginInit();
             splitContainerLogWindow.Panel1.SuspendLayout();
             splitContainerLogWindow.Panel2.SuspendLayout();
@@ -303,7 +303,7 @@ namespace LogExpert.UI.Controls.LogWindow
             dataGridContextMenuStrip.ImageScalingSize = new Size(24, 24);
             dataGridContextMenuStrip.Items.AddRange(new ToolStripItem[] { copyToolStripMenuItem, copyToJiraMenuItem, copyToTabToolStripMenuItem, menuToolStripSeparator1, scrollAllTabsToTimestampToolStripMenuItem, syncTimestampsToToolStripMenuItem, freeThisWindowFromTimeSyncToolStripMenuItem, locateLineInOriginalFileToolStripMenuItem, menuToolStripSeparator2, toggleBoomarkToolStripMenuItem, bookmarkCommentToolStripMenuItem, markEditModeToolStripMenuItem, menuToolStripSeparator3, tempHighlightsToolStripMenuItem, markCurrentFilterRangeToolStripMenuItem, pluginSeparator });
             dataGridContextMenuStrip.Name = "dataGridContextMenuStrip";
-            dataGridContextMenuStrip.Size = new Size(310, 314);
+            dataGridContextMenuStrip.Size = new Size(310, 292);
             dataGridContextMenuStrip.Opening += OnDataGridContextMenuStripOpening;
             // 
             // copyToolStripMenuItem
@@ -313,6 +313,13 @@ namespace LogExpert.UI.Controls.LogWindow
             copyToolStripMenuItem.Size = new Size(309, 22);
             copyToolStripMenuItem.Text = "Copy to clipboard";
             copyToolStripMenuItem.Click += OnCopyToolStripMenuItemClick;
+            // 
+            // copyToJiraMenuItem
+            // 
+            copyToJiraMenuItem.Name = "copyToJiraMenuItem";
+            copyToJiraMenuItem.Size = new Size(309, 22);
+            copyToJiraMenuItem.Text = "Copy to Jira panel";
+            copyToJiraMenuItem.Click += copyToJiraMenuItem_Click;
             // 
             // copyToTabToolStripMenuItem
             // 
@@ -490,7 +497,7 @@ namespace LogExpert.UI.Controls.LogWindow
             pnlProFilter.Controls.Add(btnFilterToTab);
             pnlProFilter.Location = new Point(0, 0);
             pnlProFilter.Name = "pnlProFilter";
-            pnlProFilter.Size = new Size(1457, 254);
+            pnlProFilter.Size = new Size(1457, 228);
             pnlProFilter.TabIndex = 0;
             // 
             // listView1
@@ -1245,13 +1252,6 @@ namespace LogExpert.UI.Controls.LogWindow
             saveFiltersToolStripMenuItem.Size = new Size(155, 22);
             saveFiltersToolStripMenuItem.Text = "Save";
             saveFiltersToolStripMenuItem.Click += saveFiltersToolStripMenuItem_Click;
-            // 
-            // copyToJiraMenuItem
-            // 
-            copyToJiraMenuItem.Name = "copyToJiraMenuItem";
-            copyToJiraMenuItem.Size = new Size(309, 22);
-            copyToJiraMenuItem.Text = "Copy to Jira panel";
-            copyToJiraMenuItem.Click += copyToJiraMenuItem_Click;
             // 
             // LogWindow
             // 

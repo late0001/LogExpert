@@ -54,7 +54,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     private const int SPREAD_MAX = 99;
     private const int PROGRESS_BAR_MODULO = 1000;
-    private const int FILTER_ADVANCED_SPLITTER_DISTANCE = 110;
+    private int FILTER_ADVANCED_SPLITTER_DISTANCE = 110;
     private const int WAIT_TIME = 500;
     private const int OVERSCAN = 20;
     private const string FONT_COURIER_NEW = "Courier New";
@@ -243,6 +243,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         filterCaseSensitiveCheckBox.Checked = _filterParams.IsCaseSensitive;
         filterTailCheckBox.Checked = _filterParams.IsFilterTail;
 
+        FILTER_ADVANCED_SPLITTER_DISTANCE = pnlProFilter.Height;
         splitContainerLogWindow.Panel2Collapsed = true;
         advancedFilterSplitContainer.SplitterDistance = FILTER_ADVANCED_SPLITTER_DISTANCE;
 
