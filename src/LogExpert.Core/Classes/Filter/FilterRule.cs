@@ -12,6 +12,7 @@ namespace LogExpert.Core.Classes.Filter;
 [XmlRoot("FilterRule")]
 public class FilterRule
 {
+    public bool Enabled { get; set; }
     public string Text { get; set; }
     public string Description { get; set; }
     public bool IsExclude { get; set; }
