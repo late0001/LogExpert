@@ -8632,7 +8632,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         int insertIndex = listView1.SelectedItems.Count > 0
             ? listView1.SelectedItems[0].Index
             : Rules.Count;
-
+        newRule.Enabled = true;
         Rules.Insert(insertIndex, newRule);
 
         RefreshList();
@@ -8926,6 +8926,26 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             }
         }
     }
+    private void listView1_ItemCheck (object sender, ItemCheckEventArgs e)
+    {
+        // 避免重复触发
+        if (e.NewValue == e.CurrentValue)
+            return;
+
+        ListViewItem item = listView1.Items[e.Index];
+
+        if (item == null)
+            return;
+        bool enabled = e.NewValue == CheckState.Checked;
+        // 👇 直接拿 Tag，强转成 FilterRule
+        if (item.Tag is FilterRule rule)
+        {
+            int idx = Rules.IndexOf(rule);
+            if (idx >= 0)  // 加个安全判断
+                Rules[idx].Enabled = enabled;
+        }
+    }
+
     #region Copy To Jira
     private void copyToJiraMenuItem_Click (object sender, EventArgs e)
     {
@@ -8967,7 +8987,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
             Clipboard.SetDataObject(clipText.ToString());
         }
-        
+
     }
 
     // 👇 新增：颜色转16进制（Jira只认这个）
@@ -9006,7 +9026,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         string strLine = line == null ? string.Empty : $"\t{line.LineNumber + 1}\t{line.FullLine}";
         //matchList = MergeHighlightMatchEntries(matchList, hme);
         if (matchList.IsEmpty())
-        {  
+        {
             _ = sb.AppendLine(strLine);
         }
         else
@@ -9024,4 +9044,6 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
 
     }
     #endregion
+
+
 }

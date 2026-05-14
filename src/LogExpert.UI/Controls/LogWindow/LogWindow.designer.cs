@@ -503,6 +503,7 @@ namespace LogExpert.UI.Controls.LogWindow
             // listView1
             // 
             listView1.AllowDrop = true;
+            listView1.CheckBoxes = true;
             listView1.Columns.AddRange(new ColumnHeader[] { lvColHeader1, lvColHeader2, lvColHeader3 });
             listView1.FullRowSelect = true;
             listView1.Location = new Point(3, 3);
@@ -513,6 +514,7 @@ namespace LogExpert.UI.Controls.LogWindow
             listView1.View = View.Details;
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawSubItem += listView1_DrawSubItem;
+            listView1.ItemCheck += listView1_ItemCheck;
             listView1.DragDrop += listView1_DragDrop;
             listView1.DragOver += listView1_DragOver;
             listView1.MouseDoubleClick += listView1_MouseDoubleClick;
