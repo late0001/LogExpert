@@ -36,7 +36,7 @@ internal sealed class ToolWindowCoordinator (IConfigManager configManager) : ITo
         };
 
         var prefs = _configManager.Settings.Preferences;
-        _bookmarkWindow.PreferencesChanged(prefs.FontName, prefs.FontSize, prefs.SetLastColumnWidth, prefs.LastColumnWidth, SettingsFlags.All);
+        _bookmarkWindow.PreferencesChanged(prefs.Font, prefs.SetLastColumnWidth, prefs.LastColumnWidth, SettingsFlags.All);
         _bookmarkWindow.VisibleChanged += OnBookmarkWindowVisibleChanged;
         _firstBookmarkWindowShow = true;
     }
@@ -119,9 +119,9 @@ internal sealed class ToolWindowCoordinator (IConfigManager configManager) : ITo
             : (IDockContent?)null;
     }
 
-    public void ApplyPreferences (string fontName, float fontSize, bool setLastColumnWidth, int lastColumnWidth, SettingsFlags flags)
+    public void ApplyPreferences (Font font, bool setLastColumnWidth, int lastColumnWidth, SettingsFlags flags)
     {
-        _bookmarkWindow?.PreferencesChanged(fontName, fontSize, setLastColumnWidth, lastColumnWidth, flags);
+        _bookmarkWindow?.PreferencesChanged(font, setLastColumnWidth, lastColumnWidth, flags);
     }
 
     public void SetLineColumnVisible (bool visible)
