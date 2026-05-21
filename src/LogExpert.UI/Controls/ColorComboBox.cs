@@ -23,7 +23,7 @@ internal class ColorComboBox : ComboBox
         {
             Items.AddRange(
                 [
-                    _customColor,
+                    CustomColor,
                     Color.Black,
                     Color.White,
                     Color.Gray,

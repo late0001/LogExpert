@@ -14,6 +14,7 @@ using System.Xml.Serialization;
 using ColumnizerLib;
 using ColumnizerLib.Extensions;
 
+using LogExpert.Audio;
 using LogExpert.Core.Callback;
 using LogExpert.Core.Classes;
 using LogExpert.Core.Classes.Bookmark;
@@ -3197,6 +3198,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                 var matchingList = FindMatchingHighlightEntries(line);
                 LaunchHighlightPlugins(matchingList, i);
                 var (suppressLed, stopTail, setBookmark, bookmarkComment) = GetHighlightActions(matchingList);
+                TriggerAudioAlert(matchingList);
                 if (setBookmark)
                 {
                     var capturedLineNum = i;
@@ -3248,6 +3250,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
                     var matchingList = FindMatchingHighlightEntries(line);
                     LaunchHighlightPlugins(matchingList, i);
                     var (suppressLed, stopTail, setBookmark, bookmarkComment) = GetHighlightActions(matchingList);
+                    TriggerAudioAlert(matchingList);
                     if (setBookmark)
                     {
                         var capturedLineNum = i;
@@ -3813,6 +3816,30 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
         bookmarkComment = bookmarkComment.TrimEnd(['\r', '\n']);
 
         return (noLed, stopTail, setBookmark, bookmarkComment);
+    }
+
+    /// <summary>
+    /// Fires an audio alert for the first matching highlight entry that has
+    /// <see cref="HighlightEntry.AlertOnHit"/> enabled. Iteration stops after the
+    /// first such entry; the process-wide cooldown maintained by
+    /// <see cref="AudioPlayer"/> would suppress subsequent plays anyway.
+    /// Called only from the tail trigger path.
+    /// </summary>
+    private static void TriggerAudioAlert (IList<HighlightEntry> matchingList)
+    {
+        if (matchingList == null || matchingList.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var entry in matchingList)
+        {
+            if (entry.AlertOnHit)
+            {
+                _ = AudioPlayer.PlayThrottled(entry.SoundFilePath, entry.CooldownSeconds);
+                break;
+            }
+        }
     }
 
     private void StopTimespreadThread ()
