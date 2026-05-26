@@ -5441,6 +5441,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
     }
 
     [SupportedOSPlatform("windows")]
+    uint CF_UNICODETEXT = 13; // 系统预定义的剪贴板格式ID
     private void CopyMarkedLinesToClipboard ()
     {
         var clipboardSettings = Preferences.ControlCharSettings ?? new ControlCharSettings();
@@ -5454,7 +5455,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             // EnabledCodepoints exclude TAB/LF/CR so the grid's cell/line separators
             // are preserved; users who opt in to those codepoints will see those
             // separators substituted too.
-            if (transformDisplayedForm && data is not null && data.TryGetData<string>(DataFormats.UnicodeText, out var unicodeText))
+            if (transformDisplayedForm && data is not null && data.TryGetData<string>(CF_UNICODETEXT, out var unicodeText))
             {
                 var transformed = SubstitutedClipboardBuilder.Build(unicodeText.AsSpan(), 0, unicodeText.Length, clipboardSettings);
                 data = new DataObject(DataFormats.UnicodeText, transformed);

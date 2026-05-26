@@ -9,12 +9,12 @@ namespace LogExpert.Core.Config;
 public sealed class ControlCharSettings
 {
     public bool Substitute { get; set; }
-
+    private ControlCharStyle _style = ControlCharStyle.ControlPictures;
     public ControlCharStyle Style
     {
-        get;
-        set => field = Enum.IsDefined(value) ? value : ControlCharStyle.ControlPictures;
-    } = ControlCharStyle.ControlPictures;
+        get { return _style; }
+        set => _style = Enum.IsDefined(value) ? value : ControlCharStyle.ControlPictures;
+    } 
 
     public Color ForeColor { get; set; } = Color.Gray;
 
