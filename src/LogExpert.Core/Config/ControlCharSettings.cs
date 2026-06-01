@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 
 namespace LogExpert.Core.Config;
 
+[Serializable]
 public sealed class ControlCharSettings
 {
     public bool Substitute { get; set; }
