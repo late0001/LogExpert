@@ -192,9 +192,8 @@ public class Preferences
         // that bypass ConfigManager.InitializeFont) get a usable Font without manual setup.
         // ConfigManager.InitializeFont still goes through the setter to install the canonical
         // instance during real config load.
-        get => {if (_font is not null) _font= FontHelper.ParseFontStringOrDefault(FontString);
-				return _font;
-		}
+        get =>  _font ??= FontHelper.ParseFontStringOrDefault(FontString);
+
         set => _font = value;
     }
 	private float _fontSize= 9.0f;

@@ -145,6 +145,8 @@ public class PluginRegistry : IPluginRegistry
                 foreach (var loader in _lazyColumnizers.ToList())
                 {
                     var instance = loader.GetInstance();
+                    // Data duplication by type, not by reference: GetInstance() returns a freshly constructed
+                    // object, so Contains() (reference equality) would never catch a same-type duplicate.
                     if (instance != null && !_registeredColumnizers.Any(c => c.GetType() == instance.GetType()))
                     {
                         _registeredColumnizers.Add(instance);
