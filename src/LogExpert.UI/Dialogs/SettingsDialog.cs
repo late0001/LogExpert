@@ -6,7 +6,6 @@ using System.Text;
 
 using ColumnizerLib;
 
-using LogExpert.Core.Classes.Columnizer;
 using LogExpert.Core.Config;
 using LogExpert.Core.Entities;
 using LogExpert.Core.Enums;
@@ -413,7 +412,7 @@ internal partial class SettingsDialog : Form
             }
             else
             {
-                // Stale entry ¡ª the columnizer is not registered. Mark the row but keep the original name
+                // Stale entry â€” the columnizer is not registered. Mark the row but keep the original name
                 // (a future re-install of the plugin will resurrect the entry).
                 row.Cells[3].Value = maskEntry.ColumnizerName;
                 row.Cells[0].Value = _staleImage;
@@ -1196,7 +1195,7 @@ internal partial class SettingsDialog : Form
 
     private void OnBtnWorkingDirClick (object sender, EventArgs e)
     {
-        FolderBrowserDialog dlg = new()
+        using FolderBrowserDialog dlg = new()
         {
             RootFolder = Environment.SpecialFolder.MyComputer,
             Description = Resources.SettingsDialog_UI_FolderBrowser_folderBrowserWorkingDir
