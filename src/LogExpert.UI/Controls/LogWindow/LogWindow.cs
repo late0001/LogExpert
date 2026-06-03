@@ -8709,6 +8709,7 @@ internal partial class LogWindow : DockContent, ILogPaintContextUI, ILogView, IL
             item.SubItems.Add(r.Description);
             item.SubItems.Add(r.IsExclude ? "Exclude" : "Include");
             item.SubItems.Add(r.IsRegex ? "Regex" : "Text");
+            item.Checked = r.Enabled;
             listView1.Items.Add(item);
         }
         RefreshIDs();

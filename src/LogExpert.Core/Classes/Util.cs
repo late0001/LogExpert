@@ -126,6 +126,9 @@ public static class Util
 
         foreach (var rule in filterParams.Rules)
         {
+            if (!rule.Enabled)
+                continue;
+
             if (string.IsNullOrWhiteSpace(rule.Text))
                 continue;
 
