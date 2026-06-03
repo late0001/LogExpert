@@ -628,6 +628,12 @@ internal partial class LogTabWindow : Form, ILogTabWindow
 
         _ledService.RegisterWindow(logWindow);
 
+        if (logWindow.Tag is LogWindowData ledData)
+        {
+            var icon = GetLedIcon(ledData.LedState.DiffSum, ledData);
+            _ = BeginInvoke(SetTabIcon, logWindow, icon);
+        }
+
         ConnectEventHandlers(logWindow);
     }
 
