@@ -24,6 +24,7 @@ public partial class AddFilterDialog : Form
         cboBackground.Items.Add("[Custom]");
         cboTextColor.SelectedIndex = 0;
         cboBackground.SelectedIndex = 0;
+        Rule.Enabled = true;
     }
 
     public AddFilterDialog (string line) : this()

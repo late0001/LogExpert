@@ -64,7 +64,7 @@ namespace LogExpert.UI.Controls.LogWindow
             advancedBackPanel = new Panel();
             advancedFilterSplitContainer = new SplitContainer();
             pnlProFilter = new Panel();
-            listView1 = new ListView();
+            listView1 = new UDListView();
             lvColHeader1 = new ColumnHeader();
             lvColHeader2 = new ColumnHeader();
             lvColHeader3 = new ColumnHeader();
@@ -1407,7 +1407,7 @@ namespace LogExpert.UI.Controls.LogWindow
         private ToolStripSeparator menuToolStripSeparator5;
         private ToolStripSeparator menuToolStripSeparator6;
         private Button btnAddFlt;
-        private ListView listView1;
+        private UDListView listView1;
         private ContextMenuStrip filterLvContextMenuStrip;
         private ToolStripMenuItem addFilterRuleToolStripMenuItem;
         private ToolStripMenuItem removeFilterRuleToolStripMenuItem;
