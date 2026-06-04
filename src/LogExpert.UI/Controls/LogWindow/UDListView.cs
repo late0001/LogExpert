@@ -10,46 +10,33 @@ using static Vanara.PInvoke.ComCtl32;
 namespace LogExpert.UI.Controls.LogWindow;
 public class UDListView : ListView
 {
+    // 双击消息
     private const int WM_LBUTTONDBLCLK = 0x0203;
-    private const int LVHT_ONITEMSTATEICON = 0x08; // 官方：点在复选框/状态图标上
-    [StructLayout(LayoutKind.Sequential)]
-    private struct LVHITTESTINFO
-    {
-        public int pt_x;
-        public int pt_y;
-        public uint flags;
-        public IntPtr lParam;
-    }
-
-    [DllImport("user32.dll")]
-    private static extern int SendMessage (IntPtr hWnd, int msg, int wParam, ref LVHITTESTINFO info);
 
     protected override void WndProc (ref Message m)
     {
         if (m.Msg == WM_LBUTTONDBLCLK && CheckBoxes)
         {
-            Point pt = PointToClient(Cursor.Position);
+            // 获取鼠标客户端坐标
+            Point mousePt = PointToClient(Cursor.Position);
+            ListViewHitTestInfo ht = HitTest(mousePt);
 
-            LVHITTESTINFO info = new LVHITTESTINFO
+            // 关键点：StateImage = 复选框区域；Label/SubItem=文本区域
+            // 1. 双击在复选框 → 走原生逻辑（正常切换勾选）
+            if (ht.Location == ListViewHitTestLocations.StateImage)
             {
-                pt_x = pt.X,
-                pt_y = pt.Y
-            };
-
-            // 👇 【官方API】精准判断是否点击在复选框上
-            SendMessage(Handle, 0x1000 + 42, 0, ref info); // LVM_HITTEST
-
-            // 只有真正点在 CheckBox 上，才允许触发勾选
-            bool isClickOnCheckBox = (info.flags & LVHT_ONITEMSTATEICON) != 0;
-
-            if (!isClickOnCheckBox)
+                base.WndProc(ref m);
+                return;
+            }
+            // 2. 双击在文本/行区域 → 吞掉原生双击消息，不再往下传（原生勾选逻辑直接废掉），手动抛双击事件
+            if (ht.Item != null)
             {
-                // 不是点复选框 → 只触发双击，不触发勾选
-                OnMouseDoubleClick(new MouseEventArgs(MouseButtons.Left, 2, pt.X, pt.Y, 0));
+                OnMouseDoubleClick(new MouseEventArgs(MouseButtons.Left, 2, mousePt.X, mousePt.Y, 0));
+                // 直接return，不再调用base.WndProc，原生WM_LBUTTONDBLCLK被拦截，不会触发ItemCheck改勾选
                 return;
             }
         }
-
+        // 非双击消息正常走原生
         base.WndProc(ref m);
     }
 }
