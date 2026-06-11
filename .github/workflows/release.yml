@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -111,7 +111,7 @@ jobs:
             Write-Host "::warning::Could not merge $branch automatically; merge the PR manually."
           }
 
-          # This PR is bookkeeping only ¡ª never fail the release job over it.
+          # This PR is bookkeeping only — never fail the release job over it.
           exit 0
 
       - name: Create GitHub Release
